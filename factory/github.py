@@ -45,6 +45,17 @@ class GitHub:
         items = self._req("GET", "/issues", params={"labels": label, "state": "open", "per_page": 50})
         return [i for i in items if "pull_request" not in i]
 
+    def open_issues(self) -> list[dict]:
+        items = self._req("GET", "/issues", params={"state": "open", "per_page": 100})
+        return [i for i in items if "pull_request" not in i]
+
+    def create_issue(self, title: str, body: str) -> dict:
+        return self._req("POST", "/issues", json={"title": title, "body": body})
+
+    def close(self, number: int) -> None:
+        """Close an issue or a pull request."""
+        self._req("PATCH", f"/issues/{number}", json={"state": "closed"})
+
     def issue(self, number: int) -> dict:
         return self._req("GET", f"/issues/{number}")
 
@@ -79,6 +90,16 @@ class GitHub:
             for i in self._req("GET", "/issues", params={"labels": label, "state": "open", "per_page": 50})
             if "pull_request" in i
         ]
+
+    def open_prs(self) -> list[dict]:
+        return self._req("GET", "/pulls", params={"state": "open", "per_page": 100})
+
+    def branches(self, prefix: str) -> list[str]:
+        refs = self._req("GET", f"/git/matching-refs/heads/{prefix}")
+        return [r["ref"].removeprefix("refs/heads/") for r in refs]
+
+    def delete_branch(self, name: str) -> None:
+        self._req("DELETE", f"/git/refs/heads/{name}")
 
     def pr(self, number: int) -> dict:
         return self._req("GET", f"/pulls/{number}")

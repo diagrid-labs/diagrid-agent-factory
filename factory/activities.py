@@ -242,7 +242,8 @@ def _approval_answer(number: int) -> str | None:
             continue
         if not seen_marker or c.get("author_association") not in TRUSTED:
             continue
-        first = body.split()[0].lower() if body else ""
+        # Accept a full-width slash too (／approve), as some keyboards type it.
+        first = body.split()[0].lower().replace("／", "/") if body else ""
         if first in ("/approve", "/reject"):
             answer = first[1:]
     return answer

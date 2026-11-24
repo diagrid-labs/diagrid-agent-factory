@@ -104,6 +104,22 @@ Follow along on the issues (each round's review is posted as a comment), in the 
 4. Reply `/approve` while the worker is down, if it was waiting.
 5. Start the worker again. The run continues from the step it was on. Finished steps are not repeated: no second clone, no second agent run, no duplicate comments.
 
+### Run it again
+
+`scripts/reset_demo.py` puts everything back where it started: it terminates the
+agents' running workflows, closes their PRs and deletes the `agent/*` branches,
+closes the demo issues, restores `sample-app/` from the `demo-baseline` tag (so
+the bugs are back even after you merged fixes), clears `.work/`, and opens the
+demo issues again.
+
+```bash
+uv run python scripts/reset_demo.py                  # dry run: shows what it would do
+uv run python scripts/reset_demo.py --yes --label    # reset and start the agents
+```
+
+The fixes differ a little from run to run, since the agents are LLMs; the
+workflow's checks and the review loop are what keep the outcome the same.
+
 ## Layout
 
 ```
@@ -117,7 +133,7 @@ factory/
   github.py          the GitHub calls; swap for GitLab merge requests
   prompts.py         task text and verdict parsing (pure functions)
 sample-app/          the code the agents work on, with tests
-scripts/             seed_issues.py, setup_catalyst.sh
+scripts/             seed_issues.py, reset_demo.py, setup_catalyst.sh
 dev-catalyst.yaml    run file for `diagrid dev run`
 ```
 

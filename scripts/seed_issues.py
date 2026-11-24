@@ -40,15 +40,17 @@ ISSUES = [
 ]
 
 
-def main() -> None:
-    rt = config.load()
-    gh = GitHub(rt.github_token, rt.settings.repo)
-    label = "--label" in sys.argv
+def seed(gh: GitHub, label: bool) -> None:
     for title, body in ISSUES:
-        issue = gh._req("POST", "/issues", json={"title": title, "body": body})
+        issue = gh.create_issue(title, body)
         if label:
             gh.add_labels(issue["number"], config.LABEL_IMPLEMENT)
         print(f"#{issue['number']} {title}  {issue['html_url']}")
+
+
+def main() -> None:
+    rt = config.load()
+    seed(GitHub(rt.github_token, rt.settings.repo), "--label" in sys.argv)
 
 
 if __name__ == "__main__":
