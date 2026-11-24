@@ -1,0 +1,11 @@
+# Run the worker locally, connected to a Diagrid Catalyst project:
+#   diagrid dev run --project agent-factory --file dev-catalyst.yaml
+# Catalyst provides the workflow engine, the state store (kvstore), the agent
+# registry and the LLM conversation component; nothing else runs locally.
+version: 1
+common:
+  appLogDestination: console
+apps:
+  - appID: agent-factory
+    appDirPath: .
+    command: ["uv", "run", "python", "-m", "factory.main"]
