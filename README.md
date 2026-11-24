@@ -47,6 +47,21 @@ flowchart LR
 | **Idempotent side effects** | Activities run at least once. Each one is safe to repeat: re-clone instead of reusing a half-made checkout, skip an empty commit, reuse an open PR. |
 | **Scale out** | Start a second worker with the same app id and Catalyst spreads runs across both. |
 
+## Where the ideas come from
+
+Diagrid's engineering team runs its own coding agents on Catalyst: they implement
+issues, fix failing CI, answer review comments, rebase conflicting PRs and review
+code, around the clock. This repository is a small, readable version of the
+patterns that setup is built on:
+
+- **One durable workflow per work item.** An issue or a PR is a workflow instance with a stable id, so the same item is never worked on twice, and a restart resumes it rather than starting over.
+- **The agent run is one step, not the whole process.** Claiming, checking out, verifying, pushing and reporting are plain workflow steps around the agent run.
+- **Check the agent's claims against the real world.** The workflow decides whether the work is done from git and the test run, not from the agent's final message.
+- **A fresh reviewer.** A second agent with no shared context reviews the diff, and its findings go back to the implementer for another round, with a hard limit on rounds.
+- **The worker holds the keys.** Agents get narrow tools inside a checkout. Tokens, git, pushes and PRs stay with the workflow.
+- **Hand off to a person, don't guess.** When the limits run out, or no one approves, the issue is labelled `agent:needs-human` with the agent's last summary.
+- **Agents as configuration.** Each agent's prompt, tools and limits live in a file next to the code, so adding or tuning an agent needs no change to the workflows.
+
 ## Run it
 
 You need Python 3.11+, [uv](https://docs.astral.sh/uv/), the [Diagrid CLI](https://docs.diagrid.io/catalyst/references/cli-reference/intro/), a Catalyst organization, and a GitHub repository you can push to (a fork of this one works: the agents only change `sample-app/`).
@@ -109,24 +124,3 @@ dev-catalyst.yaml    run file for `diagrid dev run`
 ### GitLab instead of GitHub
 
 The workflows only call [`factory/github.py`](factory/github.py) through the activities. A GitLab version needs the same few calls (list issues by label, comment, set labels, open a merge request, post a review note) against the GitLab API. The workflows, agents and tools stay as they are.
-
-## Catalyst, Temporal and LangGraph Platform for an agent factory
-
-All three give you durable execution, so a long agent run survives a crash and can wait for a person. They differ in what else you get and what you have to build yourself.
-
-| | Diagrid Catalyst | Temporal | LangGraph Platform |
-|---|---|---|---|
-| Durable execution model | Dapr Workflows: workflows as code, replayed from history; activities, child workflows, timers, external events | Temporal workflows: the same model, very mature | Checkpoints after each graph step; interrupts for human input |
-| Agent layer | Dapr Agents (`DurableAgent`), plus durable runtimes for LangGraph, CrewAI, OpenAI Agents SDK and others; agent registry in the console | Bring your own. LLM and tool calls become activities you write; integrations exist for some SDKs | LangGraph graphs; tight LangSmith tracing and evaluation |
-| LLM access | Conversation API: one interface to many providers, switched by component config | Your own clients | LangChain model integrations |
-| Beyond workflows | The rest of Dapr: pub/sub, state, service invocation with mTLS and app identity across clusters, secrets, MCP servers, token budgets | Workflows only; messaging and service-to-service calls are separate systems | Agent hosting: threads, cron, task queue |
-| Languages | Python, .NET, Java, Go, JavaScript | Go, Java, Python, TypeScript, .NET, PHP, Ruby | Python, JavaScript |
-| Hosting | Managed, BYOC in your cloud, or fully self-hosted (Enterprise Server) | Temporal Cloud or self-hosted cluster | Managed cloud, hybrid, or self-hosted |
-
-Where Catalyst fits best:
-
-- **Agents that are part of a larger system.** The coding agent is one step. Around it sit plain deterministic steps (claim, clone, test, push), approvals, and calls to other services. Catalyst runs all of that in one workflow and gives those services messaging and secure service-to-service calls, across clusters as well.
-- **Teams already on Dapr.** You are already running Dapr OSS. Catalyst runs the same Dapr APIs and the same SDKs, so a prototype like yours runs unchanged, and the workflow engine, state and identity are managed for you.
-- **Many agents, many teams.** An agent factory means many agents built on different frameworks by different teams. Catalyst runs them side by side with one registry, one console for workflow runs, and one set of policies, without standardizing everyone on one agent framework.
-
-Temporal is a strong choice if you are already standardized on it and want to write the agent layer yourself. LangGraph Platform fits a team that builds everything in LangGraph and wants LangSmith at the center. On Catalyst, LangGraph agents can run durably as well.
