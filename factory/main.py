@@ -8,14 +8,23 @@ them; kill any of them at any point and the runs carry on where they stopped.
 
 from __future__ import annotations
 
-import logging
-import signal
-import threading
-import time
+import os
 
-from dapr.ext import workflow as wf
+import certifi
 
-from factory import activities, agents, config, tools, workflows
+# python.org builds of Python on macOS ship without root certificates; use certifi's
+# so the HTTPS calls to the Catalyst endpoints verify. Must run before dapr is imported.
+os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
+
+import logging  # noqa: E402
+import signal  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+
+from dapr.ext import workflow as wf  # noqa: E402
+
+from factory import activities, agents, config, tools, workflows  # noqa: E402
 
 log = logging.getLogger("factory")
 
@@ -47,7 +56,7 @@ def _start_watch(client: wf.DaprWorkflowClient, settings: dict) -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    for noisy in ("httpx", "dapr_agents", "durabletask-worker", "WorkflowRuntime"):
+    for noisy in ("httpx", "mcp", "claude_agent_sdk", "dapr_agents", "durabletask-client", "durabletask-worker", "WorkflowRuntime"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
     rt = config.load()
@@ -58,7 +67,9 @@ def main() -> None:
     team = agents.build(
         config.ROOT / "agents",
         runtime,
+        backend=rt.backend,
         llm_component=rt.llm_component,
+        claude_model=rt.claude_model,
         state_store=rt.state_store,
         registry_store=rt.registry_store,
     )
@@ -67,8 +78,16 @@ def main() -> None:
     for fn in activities.ALL:
         runtime.register_activity(fn, name=fn.__name__)
 
-    for agent in team.values():
-        agent.start(runtime, auto_register=False)  # the first one starts the shared runtime
+    # Every agent's start() also starts the shared runtime; after the first, that is
+    # a harmless "already running" error, kept out of the log.
+    for i, agent in enumerate(team.values()):
+        quiet = [logging.getLogger(n) for n in ("WorkflowRuntime", "dapr_agents.agents.durable")] if i else []
+        levels = [q.level for q in quiet]
+        for q in quiet:
+            q.setLevel(logging.CRITICAL)
+        agent.start(runtime, auto_register=False)
+        for q, level in zip(quiet, levels):
+            q.setLevel(level)
     log.info("agents: %s", ", ".join(team))
 
     client = wf.DaprWorkflowClient()
@@ -82,11 +101,20 @@ def main() -> None:
     log.info("ready: label an issue '%s' or a PR '%s' on %s", config.LABEL_IMPLEMENT, config.LABEL_REVIEW, rt.settings.repo)
     stop.wait()
     log.info("shutting down")
-    for agent in team.values():
-        try:
-            agent.stop()
-        except Exception:  # noqa: BLE001
-            pass
+
+    def _stop() -> None:
+        for agent in team.values():
+            try:
+                agent.stop()  # also removes it from the agent registry
+            except Exception:  # noqa: BLE001
+                pass
+
+    # Nothing is lost by stopping hard: every run continues from its last
+    # checkpoint when a worker comes back. So do not wait long.
+    t = threading.Thread(target=_stop, daemon=True)
+    t.start()
+    t.join(timeout=5)
+    os._exit(0)
 
 
 if __name__ == "__main__":

@@ -246,7 +246,8 @@ name = "catalyst-agent-factory"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "dapr-agents" },
+    { name = "certifi" },
+    { name = "dapr-agents", extra = ["claude"] },
     { name = "httpx" },
     { name = "pytest" },
     { name = "python-dotenv" },
@@ -255,7 +256,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dapr-agents", specifier = ">=1.1.0,<1.2" },
+    { name = "certifi", specifier = ">=2026.11.20" },
+    { name = "dapr-agents", extras = ["claude"], specifier = ">=1.1.0,<1.2" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytest", specifier = ">=8" },
     { name = "python-dotenv", specifier = ">=1.0" },
@@ -397,6 +399,25 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a3/a5/cc188879ab8e8a36d295f888335f0a2875e39bcdacc6fe3207427c14036f/charset_normalizer-3.5.3-cp37-abi3-win_amd64.whl", hash = "sha256:a5a7e0326566759f9a7bc44f4b9a179cc40a297e09e759b0bc7c848c06347527", size = 200667, upload-time = "2026-11-23T02:46:27.221Z" },
     { url = "https://files.pythonhosted.org/packages/d5/a3/4a6047c40414f170ad09a6d44c1a0663914924619304817c2e33d19fae75/charset_normalizer-3.5.3-cp37-abi3-win_arm64.whl", hash = "sha256:e4f85c34f9be32ec5568a0668fb8bc029d3e729285fb8fccc38695e185379a9b", size = 290628, upload-time = "2026-11-23T02:46:29.06Z" },
     { url = "https://files.pythonhosted.org/packages/d2/0d/07ab8eb9b7015274353eac2add4067bde1ab1b51912bbae505392905eedd/charset_normalizer-3.5.3-py3-none-any.whl", hash = "sha256:96e268b0cbda016ac519513294fcd17032264085b600abaac58b93049477e132", size = 68878, upload-time = "2026-11-23T02:46:50.665Z" },
+]
+
+[[package]]
+name = "claude-agent-sdk"
+version = "0.2.188"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "jsonschema" },
+    { name = "mcp" },
+    { name = "sniffio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/39/f63f07bd2abc2ff9e2ebd3e894f16fb47343a6c58f580cb7880ee94d2fa6/claude_agent_sdk-0.2.188.tar.gz", hash = "sha256:0937793651dcde582f83adf81f0e89a7209bcf2684b8a193326903fd1c743ffc", size = 409297, upload-time = "2026-11-23T22:26:11.789Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/6e/4764f419b670b08115ed15174b07f5455832e16d821316d4d5490883b094/claude_agent_sdk-0.2.188-py3-none-macosx_11_0_arm64.whl", hash = "sha256:065ad1fca7275cea50b628f35ce4ebd96cf5d237c1b6a8db2fdc8796757da31e", size = 164667678, upload-time = "2026-11-23T22:26:23.356Z" },
+    { url = "https://files.pythonhosted.org/packages/27/65/2e2d7a63370bede7f98b0b2f5738cf28a96ab7f3c4ddc578d0f086f8d0f5/claude_agent_sdk-0.2.188-py3-none-macosx_11_0_x86_64.whl", hash = "sha256:eda2e0229705831ace802800d54614cf4db234843c4a5274e90cc4e94e93ba34", size = 172659036, upload-time = "2026-11-23T22:26:33.505Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/7d/0054b1bb0bd58613694ee4f0bd286ee5580fe80e7d3b6c9473ac40175afd/claude_agent_sdk-0.2.188-py3-none-manylinux_2_17_aarch64.whl", hash = "sha256:8e21bb2f7d3c1cd08a019df2899bbb39be6c986e25d3c951023d0540e37a7820", size = 175754927, upload-time = "2026-11-23T22:26:45.47Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/9c/362016e0b1ccd24193a6a41650c753e4d3db00a2903a1c7118eb622dde3f/claude_agent_sdk-0.2.188-py3-none-manylinux_2_17_x86_64.whl", hash = "sha256:00a6ee72f8d7eb3b027ba8883ecd32108106ecf46068cb632c4401be465c9364", size = 176385933, upload-time = "2026-11-23T22:26:58.591Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/bf/f33819d6e0b4b9e9626b88e75a7ac20615b1afc8378f5dace4723e6e5ed8/claude_agent_sdk-0.2.188-py3-none-win_amd64.whl", hash = "sha256:48de5deefa6b45f6e81c122db9adf221715f691419ead530b0dce87d78c78c9b", size = 179083465, upload-time = "2026-11-23T22:27:12.305Z" },
 ]
 
 [[package]]
@@ -558,6 +579,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9f/f3/56ac9327e29add21d54f9853e158aaa0db4ae92440063945afa69b3b4d6a/dapr_agents-1.1.1.tar.gz", hash = "sha256:85312e687eb4b2209414b0fda5e9a1d55f92d30a41496d525d20bf49e9bb3545", size = 3151936, upload-time = "2026-11-10T20:12:23.422Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3b/dd/51048041c1e79adb00f8b5be2c832c7097d5afc0b2487bb49356bd33a212/dapr_agents-1.1.1-py3-none-any.whl", hash = "sha256:acb481b05631158fc54943c30b8e99eec224073d857622ca639f7b8a1d18a028", size = 633590, upload-time = "2026-11-10T20:12:21.52Z" },
+]
+
+[package.optional-dependencies]
+claude = [
+    { name = "claude-agent-sdk" },
 ]
 
 [[package]]

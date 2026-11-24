@@ -56,27 +56,63 @@ def read_spec(path: Path) -> Spec:
     )
 
 
+def _brain(spec: Spec, backend: str, llm_component: str, claude_model: str, store: StateStoreService) -> dict:
+    """How the agent thinks: the Claude Agent SDK, or any LLM behind a Dapr Conversation component."""
+    if backend == "conversation":
+        # Every LLM call and every tool call is its own workflow activity.
+        return {"llm": DaprChatClient(component_name=llm_component)}
+    if backend != "claude":
+        raise SystemExit(f"AGENT_BACKEND must be claude or conversation, not {backend!r}")
+    # Claude Code as the agent loop, run inside a workflow activity. It uses the
+    # machine's Claude login, or CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY.
+    # builtin_tools stays empty: Claude gets only the tools in the agent file,
+    # never its own Bash, Edit or Read. The session transcript is kept in the
+    # Catalyst state store, so a run picks up where it stopped on any host.
+    from dapr_agents.agents.executors import (
+        ClaudeAgentExecutor,
+        ClaudeAgentExecutorConfig,
+        DaprSessionStore,
+        DaprSessionStoreConfig,
+    )
+
+    config = ClaudeAgentExecutorConfig(
+        model=claude_model or None,
+        max_turns=spec.max_iterations,
+        permission_mode="bypassPermissions",
+        session_store=DaprSessionStore(
+            store, config=DaprSessionStoreConfig(key_prefix=f"claude-{spec.name}", ttl_in_seconds=14 * 86400)
+        ),
+    )
+    return {"executor": ClaudeAgentExecutor(config)}
+
+
 def build(
     folder: Path,
     runtime: wf.WorkflowRuntime,
     *,
+    backend: str,
     llm_component: str,
+    claude_model: str,
     state_store: str,
     registry_store: str,
 ) -> dict[str, DurableAgent]:
     agents: dict[str, DurableAgent] = {}
     for path in sorted(folder.glob("*.md")):
         spec = read_spec(path)
+        store = StateStoreService(store_name=state_store)
         agent = DurableAgent(
             name=spec.name,
             role=spec.role,
             goal=spec.goal,
             instructions=[spec.instructions],
             tools=[agent_tools.ALL[t] for t in spec.tools],
-            llm=DaprChatClient(component_name=llm_component),
-            state=AgentStateConfig(store=StateStoreService(store_name=state_store)),
+            **_brain(spec, backend, llm_component, claude_model, store),
+            state=AgentStateConfig(store=store),
+            # Listed in the Catalyst agent registry, each in a team of its own: agents in
+            # one team become each other's tools, and here the workflow, not the
+            # implementer, decides when the reviewer runs.
             registry=AgentRegistryConfig(
-                store=StateStoreService(store_name=registry_store), team_name=TEAM
+                store=StateStoreService(store_name=registry_store), team_name=f"{TEAM}-{spec.name}"
             ),
             execution=AgentExecutionConfig(max_iterations=spec.max_iterations),
             runtime=runtime,

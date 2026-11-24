@@ -64,6 +64,8 @@ class Runtime:
     settings: Settings
     github_token: str
     work_root: Path
+    backend: str
+    claude_model: str
     llm_component: str
     state_store: str
     registry_store: str
@@ -89,6 +91,8 @@ def load() -> Runtime:
         settings=settings,
         github_token=_github_token(),
         work_root=work_root,
+        backend=os.environ.get("AGENT_BACKEND", "claude").strip().lower(),
+        claude_model=os.environ.get("CLAUDE_MODEL", "claude-sonnet-5-5"),
         llm_component=os.environ.get("LLM_COMPONENT", "llm-provider"),
         state_store=os.environ.get("STATE_STORE", "kvstore"),
         registry_store=os.environ.get("REGISTRY_STORE", os.environ.get("STATE_STORE", "kvstore")),

@@ -9,3 +9,5 @@ apps:
   - appID: agent-factory
     appDirPath: .
     command: ["uv", "run", "python", "-m", "factory.main"]
+    env:
+      PYTHONUNBUFFERED: "1"
