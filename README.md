@@ -22,8 +22,8 @@ version of how Diagrid runs coding agents on its own repositories.
 | Hold the token, push, open the PR, set labels | | yes | |
 | Merge | yes | | |
 
-Agents do the work. The workflow enforces the rules in between. People hold
-every gate.
+Agents do the work, people hold every gate, and the workflow enforces the rules
+in between.
 
 ## How work moves
 
@@ -42,7 +42,7 @@ posts a review on it.
 Every step leaves a comment on the issue, so the thread is the record of what
 happened and why. When a limit runs out (no change, no approved change after 2
 rounds, a `/reject`, or no answer in 24 hours), the issue is labelled
-`agent:needs-human` with the agent's last summary. The agents never guess.
+`agent:needs-human` with the agent's last summary.
 
 ```mermaid
 flowchart LR
@@ -63,7 +63,7 @@ flowchart LR
 | Rule | Where |
 |---|---|
 | **The workflow owns the process.** The order of steps, the review loop, the round limit and the approval gate are plain code. The agents never decide whether they are done. | [`factory/workflows.py`](factory/workflows.py) |
-| **Check the agent's work, don't trust its word.** After the implementer finishes, the workflow lists the changed files and runs the tests itself. | `verify_workspace` in [`factory/activities.py`](factory/activities.py) |
+| **The workflow checks the agent's work.** After the implementer finishes, the workflow lists the changed files and runs the tests itself. | `verify_workspace` in [`factory/activities.py`](factory/activities.py) |
 | **A fresh reviewer.** A second agent with no shared context reviews the diff and ends with `VERDICT: APPROVE` or `REQUEST_CHANGES`. | [`agents/reviewer.md`](agents/reviewer.md) |
 | **Least privilege.** Agents get five tools: list, read, search, write (inside one directory only) and run tests. They never see the GitHub token and cannot run git, push, label or merge. With the Claude backend, Claude's own shell and edit tools are switched off. | [`factory/tools.py`](factory/tools.py) |
 | **People hold the gates.** Only `/approve` and `/reject` from owners, members and collaborators count. The review bot comments; it never approves, so it does not count toward branch protection. | [`factory/github.py`](factory/github.py) |
@@ -88,10 +88,10 @@ request, post a review note.
 
 ## Why workflows
 
-The workflow is what makes the rules hold. Each step runs on Catalyst as a
-durable workflow step, so an agent run, a review round or a wait for approval
-that lasts a day survives a restart of the worker, and continues from its last
-completed step without repeating work. Start more workers with the same app id
+Each step runs on Catalyst as a durable workflow step, so the rules hold across
+restarts. An agent run, a review round or a day-long wait for approval survives a
+restart of the worker and continues from its last completed step, without
+repeating work. Start more workers with the same app id
 and Catalyst spreads the runs across them. Every run, step and agent run shows
 in the Catalyst console.
 
@@ -151,7 +151,7 @@ uv run python scripts/reset_demo.py --yes --label    # reset and start the agent
 ```
 
 The fixes differ a little from run to run, since the agents are LLMs. The
-workflow's checks and the review loop are what keep the outcome the same.
+workflow's checks and the review loop keep the outcome the same.
 
 ## Layout
 
