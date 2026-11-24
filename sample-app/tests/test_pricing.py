@@ -18,6 +18,14 @@ def test_pip_value_eurusd():
     assert pip_value("EURUSD", 100_000, 1.1) == 10.0
 
 
+def test_spread_in_pips_jpy():
+    assert spread_in_pips(Quote("USDJPY", 150.100, 150.115)) == 1.5
+
+
+def test_pip_value_jpy():
+    assert pip_value("USDJPY", 100_000, 150.0) == 1000.0
+
+
 def test_long_position_pnl():
     pos = Position("EURUSD", "buy", 10_000, 1.1000)
     assert position_pnl(pos, Quote("EURUSD", 1.1050, 1.1052)) == 50.0

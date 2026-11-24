@@ -5,6 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 PIP_SIZE = 0.0001
+JPY_PIP_SIZE = 0.01
+
+
+def pip_size(pair: str) -> float:
+    """Pip size for a pair: 0.01 when the quote currency is JPY, else 0.0001."""
+    return JPY_PIP_SIZE if pair[-3:].upper() == "JPY" else PIP_SIZE
 
 
 @dataclass(frozen=True)
@@ -28,12 +34,12 @@ class Position:
 
 def spread_in_pips(quote: Quote) -> float:
     """The quote's spread in pips."""
-    return round((quote.ask - quote.bid) / PIP_SIZE, 1)
+    return round((quote.ask - quote.bid) / pip_size(quote.pair), 1)
 
 
 def pip_value(pair: str, units: float, price: float) -> float:
     """Value of one pip, in the quote currency, for a position of `units`."""
-    return units * PIP_SIZE
+    return units * pip_size(pair)
 
 
 def position_pnl(position: Position, quote: Quote) -> float:
