@@ -1,0 +1,20 @@
+[project]
+name = "catalyst-agent-factory"
+version = "0.1.0"
+description = "Issue-to-PR coding agents and a PR review bot on Dapr Workflows and Diagrid Catalyst"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "certifi>=2026.11.20",
+    "dapr-agents[claude]>=1.1.0,<1.2",
+    "httpx>=0.28.1",
+    # The agents run the sample app's tests through the run_tests tool.
+    "pytest>=8",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
