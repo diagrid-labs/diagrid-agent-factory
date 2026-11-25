@@ -29,10 +29,8 @@ How it is deployed, and its secrets: [deploy/README.md](deploy/README.md).
    It stops the agents' running workflows, closes their issues and pull requests,
    deletes their `agent/*` branches and puts the bugs back in `sample-app/`. The
    run's summary lists what it closed.
-2. **Open an issue** on this repository as an org member, no label needed. For a
-   fix you can predict, use one of the seeded bugs in
-   [`scripts/seed_issues.py`](scripts/seed_issues.py), for example "Short positions
-   show the wrong sign in P&L".
+2. **Open a demo issue** as an org member: **New issue**, then one of the three
+   Demo templates below. No label needed.
 3. **Watch the issue.** Within 30 seconds the worker claims it and comments with
    a link to its run. Each implementer and reviewer round is posted as a comment.
 4. **Show the run.** The link opens the run in the Diagrid console: each step,
@@ -41,6 +39,21 @@ How it is deployed, and its secrets: [deploy/README.md](deploy/README.md).
    workflow opens the pull request. `/reject` stops it.
 6. **Review bot.** Label any pull request `agent:review` and the reviewer agent
    posts a review on it.
+
+### Demo issues
+
+Each one is a bug or a small feature in `sample-app/pricing.py` with one clear
+fix, so you know what the pull request will change. The code differs a little
+between runs, since the agents are LLMs.
+
+| Open it | The issue | The pull request you get |
+|---|---|---|
+| [Demo 1](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-1-short-pnl.md) | Short positions show the wrong sign in P&L | `position_pnl` returns a loss for a losing short, plus a test |
+| [Demo 2](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-2-jpy-pips.md) | Spread and pip value are 100x off for JPY pairs | a 0.01 pip for JPY pairs in `spread_in_pips` and `pip_value`, plus tests |
+| [Demo 3](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-3-margin.md) | Add `margin_required(units, price, leverage)` | the new function with its checks, plus tests |
+
+Demo 1 is the quickest: one line of code and one test, about 3 minutes to the
+approval request. Any other issue works too, but its result is harder to predict.
 
 ## Who does what
 
