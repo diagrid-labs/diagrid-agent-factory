@@ -190,6 +190,8 @@ engineer's pull requests and hands an item to the right lane with a cross-app
 child-workflow call; the lane runs its agent as a child workflow, checks the
 result against git, and reports back.
 
+![Lanes: a monitor per engineer hands each item to a lane; each lane is its own Diagrid app that runs its agent as a child workflow, checks the result against git and reports back](docs/lanes.png)
+
 | Lane | Takes | Does |
 |---|---|---|
 | implementer | a Linear issue | writes the change, runs a review loop, opens the PR |
