@@ -145,6 +145,10 @@ def build(agent_workflows: dict[str, str]):
             },
             retry_policy=RETRY,
         )
+        if pr.get("missing"):
+            return (yield from _needs_human(
+                ctx, number, "The worker lost its checkout before it could push. Label the issue again to redo it.", summary
+            ))
         yield ctx.call_activity(
             act.set_labels,
             input={"number": number, "add": [config.LABEL_DONE], "remove": [config.LABEL_IN_PROGRESS]},
