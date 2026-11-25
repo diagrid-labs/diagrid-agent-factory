@@ -70,3 +70,10 @@ def test_run_link(monkeypatch):
     assert run_link("issue-x-1") == "`issue-x-1`"
     monkeypatch.setenv("CONSOLE_URL", "https://c/workflows/app/{instance_id}?org=o")
     assert run_link("issue-x-1") == "[`issue-x-1`](https://c/workflows/app/issue-x-1?org=o)"
+
+
+def test_open_pull_request_without_checkout(tmp_path):
+    from factory.activities import open_pull_request
+
+    out = open_pull_request(None, {"path": str(tmp_path / "gone"), "branch": "agent/issue-1"})
+    assert out == {"missing": True}

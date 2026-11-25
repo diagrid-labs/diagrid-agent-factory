@@ -13,7 +13,12 @@ metadata:
   labels:
     app: agent-factory
 spec:
+  # One worker with its own disk, like a lane worker in agentic-engineering: every activity
+  # of a run lands here, and a checkout outlives a restart. Recreate, because the disk
+  # attaches to one pod at a time.
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: agent-factory
@@ -22,6 +27,8 @@ spec:
       labels:
         app: agent-factory
     spec:
+      securityContext:
+        fsGroup: 10001  # the image's user, so it can write the new disk
       containers:
         - name: worker
           image: public.ecr.aws/d3f9w4q8/agent-factory/worker
@@ -79,6 +86,20 @@ spec:
               cpu: "1"
               memory: 1536Mi
       volumes:
-        # Checkouts. Lost on restart, which is fine: every activity re-clones.
+        # Checkouts. The agent's work lives here until /approve pushes it, so it must
+        # survive a restart or a redeploy mid-run.
         - name: work
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: agent-factory-work
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: agent-factory-work
+  namespace: agent-factory
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 5Gi

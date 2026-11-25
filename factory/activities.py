@@ -178,9 +178,18 @@ def request_approval(ctx: wf.WorkflowActivityContext, inp: dict) -> None:
     gh().add_labels(number, config.LABEL_AWAITING_APPROVAL)
 
 
+def _pushed_already(path: Path, repo: str, branch: str) -> bool:
+    """Whether the remote branch is at this checkout's HEAD: the push ran, then the worker stopped."""
+    remote = _git(path, "ls-remote", _authed_url(repo), f"refs/heads/{branch}", check=False).split()
+    return bool(remote) and remote[0] == _git(path, "rev-parse", "HEAD").strip()
+
+
 def open_pull_request(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
     path = Path(inp["path"])
     branch = inp["branch"]
+    if not (path / ".git").is_dir():
+        # The agents' work was only in this checkout. Retrying cannot bring it back.
+        return {"missing": True}
     _git(path, "add", "--all")
     if _git(path, "status", "--porcelain").strip():
         _git(
@@ -189,7 +198,8 @@ def open_pull_request(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
             "-c", "user.email=agent-factory@users.noreply.github.com",
             "commit", "--quiet", "-m", f"{inp['title']}\n\nResolves #{inp['number']}.",
         )
-    _git(path, "push", "--quiet", "--force", _authed_url(inp["repo"]), f"HEAD:refs/heads/{branch}")
+    if not _pushed_already(path, inp["repo"], branch):
+        _git(path, "push", "--quiet", "--force", _authed_url(inp["repo"]), f"HEAD:refs/heads/{branch}")
     pr = gh().find_pr(branch) or gh().open_pr(
         head=branch, base=inp["base_branch"], title=inp["title"], body=inp["body"]
     )
