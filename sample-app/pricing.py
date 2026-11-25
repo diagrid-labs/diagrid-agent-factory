@@ -26,6 +26,12 @@ class Position:
     open_price: float
 
 
+def mid_price(quote: Quote) -> float:
+    """Mid price (bid + ask) / 2, rounded to 5 decimals (3 for JPY pairs)."""
+    decimals = 3 if "JPY" in quote.pair.upper() else 5
+    return round((quote.bid + quote.ask) / 2, decimals)
+
+
 def spread_in_pips(quote: Quote) -> float:
     """The quote's spread in pips."""
     return round((quote.ask - quote.bid) / PIP_SIZE, 1)
