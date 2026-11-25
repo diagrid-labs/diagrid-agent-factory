@@ -83,12 +83,12 @@ with a fixed id per issue or PR commit, so a restart of the watcher leaves them 
 
 ```
 issue_watch  (polls every 30 s, then continue-as-new)
- ├─ starts ─► implement_issue      issue-<repo>-<N>
- │              ├─ child ─► implementer agent   …-implement-<round>
- │              ├─ child ─► reviewer agent      …-review-<round>
- │              └─ waits for the "approval" event ◄─ raised by issue_watch on /approve or /reject
+ ├─ starts ─► implement_issue  issue-<repo>-<N>
+ │              ├─ child ─► implementer agent  …-implement-<round>
+ │              ├─ child ─► reviewer agent     …-review-<round>
+ │              └─ waits for "approval"  ◄─ /approve or /reject
  └─ starts ─► review_pull_request  review-<repo>-<PR>-<sha>
-                └─ child ─► reviewer agent      …-review
+                └─ child ─► reviewer agent     …-review
 ```
 
 **`issue_watch`** (one run, always on)
