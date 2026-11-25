@@ -43,7 +43,7 @@ happened and why. When a limit runs out (no change, no approved change after 2
 rounds, a `/reject`, or no answer in 24 hours), the issue is labelled
 `agent:needs-human` with the agent's last summary.
 
-![Architecture: which steps are plain code, which call an LLM, and which wait for a person](docs/architecture.png)
+![Architecture: grey steps are plain code, purple steps call an LLM, orange waits for a person](docs/architecture.png)
 
 The two agent steps are the only ones that call an LLM. Each runs as a child
 workflow; every other step is a workflow activity in plain code.
