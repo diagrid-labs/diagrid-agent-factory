@@ -39,4 +39,8 @@ def pip_value(pair: str, units: float, price: float) -> float:
 def position_pnl(position: Position, quote: Quote) -> float:
     """Unrealised profit or loss in the quote currency, closing at the current quote."""
     close = quote.bid if position.side == "buy" else quote.ask
-    return round((close - position.open_price) * position.units, 2)
+    if position.side == "buy":
+        pnl = (close - position.open_price) * position.units
+    else:
+        pnl = (position.open_price - close) * position.units
+    return round(pnl, 2)
