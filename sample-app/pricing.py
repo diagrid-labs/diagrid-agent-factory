@@ -40,3 +40,16 @@ def position_pnl(position: Position, quote: Quote) -> float:
     """Unrealised profit or loss in the quote currency, closing at the current quote."""
     close = quote.bid if position.side == "buy" else quote.ask
     return round((close - position.open_price) * position.units, 2)
+
+
+def margin_required(units: float, price: float, leverage: float) -> float:
+    """Return margin required for a position: units * price / leverage, rounded to 2 decimals.
+    - leverage must be > 0
+    - units and price must be >= 0
+    """
+    if leverage <= 0:
+        raise ValueError("leverage must be > 0")
+    if units < 0 or price < 0:
+        raise ValueError("units and price must not be negative")
+    margin = units * price / leverage
+    return round(margin, 2)

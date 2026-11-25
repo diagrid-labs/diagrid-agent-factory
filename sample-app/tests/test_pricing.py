@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pricing import Position, Quote, pip_value, position_pnl, spread_in_pips  # noqa: E402
+from pricing import Position, Quote, pip_value, position_pnl, spread_in_pips, margin_required  # noqa: E402
 
 
 def test_mid():
@@ -21,3 +21,22 @@ def test_pip_value_eurusd():
 def test_long_position_pnl():
     pos = Position("EURUSD", "buy", 10_000, 1.1000)
     assert position_pnl(pos, Quote("EURUSD", 1.1050, 1.1052)) == 50.0
+
+
+def test_margin_required_basic():
+    assert margin_required(10000, 1.2, 30) == 400.00
+    assert margin_required(5000, 1.05, 50) == 105.00
+    assert margin_required(0, 1.1, 50) == 0.00
+    assert margin_required(1234, 1.2345, 10) == round(1234 * 1.2345 / 10, 2)
+
+
+def test_margin_required_invalid():
+    import pytest
+    with pytest.raises(ValueError):
+        margin_required(1000, 1.2, 0)
+    with pytest.raises(ValueError):
+        margin_required(1000, 1.2, -2)
+    with pytest.raises(ValueError):
+        margin_required(-1, 1.2, 30)
+    with pytest.raises(ValueError):
+        margin_required(1000, -1.2, 30)
