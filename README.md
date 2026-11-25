@@ -158,4 +158,5 @@ factory/
 sample-app/          the code the agents work on, with tests
 scripts/             seed_issues.py, reset_demo.py, setup_diagrid.sh
 dev-diagrid.yaml     run file for `diagrid dev run`
+Dockerfile, deploy/  the hosted copy on Kubernetes, synced by Argo CD (deploy/README.md)
 ```

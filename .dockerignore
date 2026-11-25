@@ -1,0 +1,8 @@
+# The image is public: allowlist only what the build needs.
+*
+!pyproject.toml
+!uv.lock
+!.python-version
+!factory/
+!agents/
+**/__pycache__
