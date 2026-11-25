@@ -7,6 +7,10 @@ from dataclasses import dataclass
 PIP_SIZE = 0.0001
 
 
+def pip_size_for_pair(pair: str) -> float:
+    """Return appropriate pip size according to currency pair (0.01 for JPY quote, else 0.0001)"""
+    return 0.01 if pair[-3:] == "JPY" else 0.0001
+
 @dataclass(frozen=True)
 class Quote:
     pair: str  # for example "EURUSD"
@@ -28,12 +32,14 @@ class Position:
 
 def spread_in_pips(quote: Quote) -> float:
     """The quote's spread in pips."""
-    return round((quote.ask - quote.bid) / PIP_SIZE, 1)
+    pip_size = pip_size_for_pair(quote.pair)
+    return round((quote.ask - quote.bid) / pip_size, 1)
 
 
 def pip_value(pair: str, units: float, price: float) -> float:
     """Value of one pip, in the quote currency, for a position of `units`."""
-    return units * PIP_SIZE
+    pip_size = pip_size_for_pair(pair)
+    return units * pip_size
 
 
 def position_pnl(position: Position, quote: Quote) -> float:
