@@ -1,12 +1,12 @@
 """Put the demo back to its starting point, so it can be run again.
 
+The Reset demo action runs this. To run it by hand:
+
     uv run python scripts/reset_demo.py                 # show what would happen
     uv run python scripts/reset_demo.py --yes           # do it, then open fresh issues
     uv run python scripts/reset_demo.py --yes --label   # ...and hand them to the implementer
     uv run python scripts/reset_demo.py --yes --no-seed # reset only
     uv run python scripts/reset_demo.py --yes --label --only 1  # one issue, so one known PR
-
-The Reset demo workflow in GitHub Actions runs this with a form instead.
 
 What it does, in order:
 1. terminates the agents' running workflows on Diagrid (the watcher keeps running),
@@ -128,7 +128,7 @@ def main() -> None:
         if pr["head"]["ref"].startswith("agent/"):
             print(f"   close PR #{pr['number']} {pr['title']}")
             if apply:
-                gh.comment(pr["number"], "Closed by `scripts/reset_demo.py`.")
+                gh.comment(pr["number"], "Closed by the demo reset.")
                 gh.close(pr["number"])
     for branch in gh.branches("agent/"):
         print(f"   delete branch {branch}")
@@ -142,7 +142,7 @@ def main() -> None:
         if issue["title"] in titles or any(name.startswith("agent:") for name in labels):
             print(f"   close #{issue['number']} {issue['title']}")
             if apply:
-                gh.comment(issue["number"], "Closed by `scripts/reset_demo.py`.")
+                gh.comment(issue["number"], "Closed by the demo reset.")
                 gh.close(issue["number"])
                 for name in labels:
                     if name.startswith("agent:"):
