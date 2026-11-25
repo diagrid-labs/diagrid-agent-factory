@@ -2,7 +2,8 @@
 
 A persistent copy of this demo runs on `demo-production-catalyst`, namespace `agent-factory`,
 against the Diagrid project `agent-factory` in the Demo Production Catalyst org. It watches
-`diagrid-labs/diagrid-agent-factory` and works on issues opened there by org members.
+`diagrid-labs/diagrid-agent-factory` and works on issues opened there by org members. How to run the demo is in the
+[README](../README.md#run-the-demo).
 
 Merging to `main` deploys it. The **Publish** workflow runs the tests, builds the worker image,
 pushes it to `public.ecr.aws/d3f9w4q8/agent-factory/worker:<commit>` (GitHub OIDC, role
@@ -77,13 +78,6 @@ kaf logs deploy/agent-factory | grep -E "agents:|ready:"
 ```
 
 The log ends with `ready: label an issue 'agent:implement' ...` once the worker is connected.
-
-## Run the demo
-
-Open an issue on `diagrid-labs/diagrid-agent-factory` as an org member. Within 30 seconds the
-worker labels it and comments with its workflow run. The rest is in the [README](../README.md).
-To reset it, run **Actions → Reset demo** in the repo, or `scripts/reset_demo.py --project agent-factory`
-with the production CLI login.
 
 ## Tear down
 

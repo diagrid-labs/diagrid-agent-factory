@@ -10,6 +10,41 @@ It runs on [Dapr Workflows](https://docs.dapr.io/developing-applications/buildin
 [Diagrid](https://www.diagrid.io/catalyst). Diagrid runs coding agents on its own
 repositories the same way; this is a smaller version of that setup.
 
+## What runs
+
+The demo runs all the time, so there is nothing to start.
+
+| Piece | What it is |
+|---|---|
+| Worker | One pod on Diagrid's demo Kubernetes cluster, namespace `agent-factory`: the three workflows and both agents. Argo CD deploys it from `deploy/` on every merge to `main`. |
+| Diagrid | Project `agent-factory`. It runs the workflows and keeps their state, so a run survives a restart of the pod. |
+| GitHub | This repository. The worker watches its issues and pull requests, and comments and pushes as a bot account. |
+| LLM | OpenAI `gpt-4.1`, through the Dapr Conversation component `llm-provider` in the Diagrid project. |
+
+How it is deployed, and its secrets: [deploy/README.md](deploy/README.md).
+
+## Run the demo
+
+1. **Reset.** Open **Actions → [Reset demo](https://github.com/diagrid-labs/diagrid-agent-factory/actions/workflows/reset-demo.yaml) → Run workflow**,
+   pick an issue and keep **start** ticked. The reset stops the agents' running
+   workflows, closes their issues and pull requests, deletes their `agent/*`
+   branches, puts the bugs back in `sample-app/`, and opens the issue you picked
+   with the `agent:implement` label. The run's summary lists what it closed and opened.
+2. **Watch the issue.** Within 30 seconds the worker claims it and comments with
+   its workflow id. Each implementer and reviewer round is posted as a comment.
+3. **Show the run.** In the Diagrid console, project `agent-factory`, **Workflows**:
+   the run for the issue shows each step, the two agent runs, and the wait for approval.
+4. **Approve.** When the issue asks, reply `/approve` as an org member, and the
+   workflow opens the pull request. `/reject` stops it.
+5. **Review bot.** Label any pull request `agent:review` and the reviewer agent
+   posts a review on it.
+
+You can also open your own issue on this repository as an org member. The worker
+picks it up without a label.
+
+Pick one seeded issue to know which pull request to expect. Each has a single
+clear fix, though the code differs a little between runs, since the agents are LLMs.
+
 ## Who does what
 
 | | People | Workflow | Agents |
@@ -85,69 +120,6 @@ repeating work. Start more workers with the same app id
 and Diagrid spreads the runs across them. Every run, step and agent run shows
 in the Diagrid console.
 
-## Run it
-
-You need Python 3.11+, [uv](https://docs.astral.sh/uv/), the [Diagrid CLI](https://docs.diagrid.io/catalyst/references/cli-reference/intro/), a Diagrid organization, and a GitHub repository you can push to (a fork of this one works: the agents only change `sample-app/`).
-
-```bash
-git clone https://github.com/diagrid-labs/diagrid-agent-factory && cd diagrid-agent-factory
-uv sync
-cp .env.example .env        # set TARGET_REPO to your fork
-diagrid login
-diagrid project create agent-factory --enable-managed-workflow --deploy-managed-kv
-```
-
-Pick how the agents think (`AGENT_BACKEND` in `.env`):
-
-- `claude` (default): the Claude Agent SDK, using this machine's Claude login, or `CLAUDE_CODE_OAUTH_TOKEN` / `ANTHROPIC_API_KEY`. Nothing to create in Diagrid.
-- `conversation`: any LLM behind a Dapr Conversation component (OpenAI, Anthropic, Bedrock, Azure OpenAI, Ollama, ...). Create it with:
-
-  ```bash
-  OPENAI_API_KEY=... scripts/setup_diagrid.sh agent-factory      # or ANTHROPIC_API_KEY=...
-  ```
-
-Start the worker, connected to Diagrid:
-
-```bash
-diagrid dev run --project agent-factory --file dev-diagrid.yaml --approve
-```
-
-The first run creates the `agent:*` labels on the repository. Then open the demo
-issues and hand them to the implementer:
-
-```bash
-uv run python scripts/seed_issues.py --label
-```
-
-Follow along on the issues (each review round is posted as a comment), in the
-worker's log, and in the Diagrid console's workflow view. Reply `/approve` on an
-issue when asked, and a pull request opens. Then label it `agent:review` to have
-the reviewer agent review it.
-
-Comments, pull requests and reviews appear under the GitHub account whose token
-the worker uses. Give it a bot account's token to keep them apart from yours.
-
-### Run it again
-
-`scripts/reset_demo.py` puts everything back where it started: it terminates the
-agents' running workflows, closes their PRs and deletes the `agent/*` branches,
-closes the demo issues, restores `sample-app/` from the `demo-baseline` tag (so
-the bugs are back even after you merged fixes), clears `.work/`, and opens the
-demo issues again.
-
-```bash
-uv run python scripts/reset_demo.py                  # dry run: shows what it would do
-uv run python scripts/reset_demo.py --yes --label    # reset and start the agents
-uv run python scripts/reset_demo.py --yes --label --only 1   # one issue, so you know the PR to expect
-```
-
-Or without a checkout: **Actions → Reset demo → Run workflow**, pick the issue,
-and it does the same. Add a `DIAGRID_API_KEY` repo secret so it can also
-terminate the agents' running workflows; without it they are left alone.
-
-The fixes differ a little from run to run, since the agents are LLMs. The
-workflow's checks and the review loop keep the outcome the same.
-
 ## Layout
 
 ```
@@ -161,7 +133,9 @@ factory/
   github.py          the GitHub calls; swap for GitLab merge requests
   prompts.py         task text and verdict parsing (pure functions)
 sample-app/          the code the agents work on, with tests
-scripts/             seed_issues.py, reset_demo.py, setup_diagrid.sh
-dev-diagrid.yaml     run file for `diagrid dev run`
+scripts/             seed_issues.py, reset_demo.py (what Reset demo runs), setup_diagrid.sh
+dev-diagrid.yaml     run file for `diagrid dev run` (docs/local.md)
 Dockerfile, deploy/  the hosted copy on Kubernetes, synced by Argo CD (deploy/README.md)
 ```
+
+To work on the factory itself, run a copy on your laptop: [docs/local.md](docs/local.md).
