@@ -1,0 +1,89 @@
+# The agent factory worker on demo-production-catalyst.
+#
+# The worker runs here; Diagrid (Demo Production Catalyst org, project agent-factory)
+# hosts the workflow engine, the state store and the console. The worker watches
+# TARGET_REPO on GitHub and opens pull requests there as the bot account.
+#
+# Secrets are NOT in this file. Create them first. See deploy/README.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-factory
+  namespace: agent-factory
+  labels:
+    app: agent-factory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-factory
+  template:
+    metadata:
+      labels:
+        app: agent-factory
+    spec:
+      containers:
+        - name: worker
+          image: public.ecr.aws/d3f9w4q8/agent-factory/worker
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TARGET_REPO
+              value: diagrid-labs/diagrid-agent-factory
+            - name: TARGET_SCOPE
+              value: sample-app
+            - name: TEST_COMMAND
+              value: python -m pytest -q sample-app
+            # A new issue from an org member starts the agents; no label needed.
+            - name: AUTO_PICKUP
+              value: "true"
+            - name: REQUIRE_APPROVAL
+              value: "true"
+            - name: AGENT_BACKEND
+              value: claude
+            - name: CLAUDE_MODEL
+              value: claude-sonnet-5-5
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-bot
+                  key: token
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: anthropic
+                  key: apiKey
+            # Diagrid connection: the App ID's token and endpoints.
+            - name: DAPR_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: catalyst-agent-factory
+                  key: apiToken
+            - name: DAPR_GRPC_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: catalyst-agent-factory
+                  key: grpcEndpoint
+            - name: DAPR_HTTP_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: catalyst-agent-factory
+                  key: httpEndpoint
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: home
+              mountPath: /home/app
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1536Mi
+      volumes:
+        # Checkouts and the Claude CLI's home. Lost on restart, which is fine:
+        # every activity re-clones, and agent sessions live in the Diagrid state store.
+        - name: work
+          emptyDir: {}
+        - name: home
+          emptyDir: {}

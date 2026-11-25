@@ -1,0 +1,77 @@
+# Builds the worker image on every PR. On main it also pushes it to ECR Public and points
+# deploy/kustomization.yaml at it; Argo CD rolls that commit out.
+name: Publish
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    # The tag bump below edits deploy/. The agents' own PRs only change sample-app/.
+    paths-ignore: ["deploy/**", "docs/**", "sample-app/**", "scripts/**", "**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+# ECR Public with the GitHub OIDC push role the other demos use.
+env:
+  AWS_REGION: us-east-1
+  REGISTRY: public.ecr.aws/d3f9w4q8/agent-factory
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run pytest -q
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials (OIDC)
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::214575257891:role/github-actions-ecr-push
+          aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com
+
+      - name: Login to Amazon ECR Public
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+
+      - name: Build worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64,linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.REGISTRY }}/worker:${{ github.sha }}
+          provenance: false
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,mode=max,scope=worker
+
+      - name: Point the deployment at the new image
+        if: github.event_name != 'pull_request'
+        run: |
+          cd deploy
+          kustomize edit set image "${REGISTRY}/worker=${REGISTRY}/worker:${GITHUB_SHA}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "deploy: ${GITHUB_SHA::7}"
+          git pull --rebase
+          git push
