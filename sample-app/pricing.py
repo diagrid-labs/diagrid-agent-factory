@@ -7,6 +7,15 @@ from dataclasses import dataclass
 PIP_SIZE = 0.0001
 
 
+def mid_price(quote: 'Quote') -> float:
+    """(bid + ask) / 2, rounded to 5 decimals (3 for JPY pairs)."""
+    mid = (quote.bid + quote.ask) / 2
+    # If the quote is for JPY pairs, round to 3 decimals
+    decimals = 3 if quote.pair[-3:] == "JPY" else 5
+    factor = 10 ** decimals
+    return round(mid * factor + 1e-8) / factor  # Classic round-half-up for positive numbers
+
+
 @dataclass(frozen=True)
 class Quote:
     pair: str  # for example "EURUSD"

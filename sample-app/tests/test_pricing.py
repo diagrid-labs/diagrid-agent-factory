@@ -3,20 +3,27 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pricing import Position, Quote, pip_value, position_pnl, spread_in_pips  # noqa: E402
+from pricing import Position, Quote, pip_value, position_pnl, spread_in_pips, mid_price  # noqa: E402
 
 
 def test_mid():
     assert Quote("EURUSD", 1.1000, 1.1002).mid == 1.1001
 
+def test_mid_price_eurusd():
+    q = Quote("EURUSD", 1.23456, 1.23478)
+    # (1.23456 + 1.23478) / 2 = 1.23467, rounded to 5 decimals
+    assert mid_price(q) == 1.23467
+
+def test_mid_price_usdjpy():
+    q = Quote("USDJPY", 150.123, 150.234)
+    # (150.123 + 150.234) / 2 = 150.1785, rounded to 3 decimals
+    assert mid_price(q) == 150.179
 
 def test_spread_in_pips_eurusd():
     assert spread_in_pips(Quote("EURUSD", 1.10000, 1.10012)) == 1.2
 
-
 def test_pip_value_eurusd():
     assert pip_value("EURUSD", 100_000, 1.1) == 10.0
-
 
 def test_long_position_pnl():
     pos = Position("EURUSD", "buy", 10_000, 1.1000)
