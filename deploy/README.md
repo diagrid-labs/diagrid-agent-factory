@@ -6,7 +6,7 @@ against the Diagrid project `agent-factory` in the Demo Production Catalyst org.
 
 Merging to `main` deploys it. The **Publish** workflow runs the tests, builds the worker image,
 pushes it to `public.ecr.aws/d3f9w4q8/agent-factory/worker:<commit>` (GitHub OIDC, role
-`github-actions-ecr-push` in account `214575257891`, as the other demos do), and commits the new
+`github-actions-ecr-push-agent-factory` in account `214575257891`), and commits the new
 tag to `deploy/kustomization.yaml`. Argo CD (Application `agent-factory`,
 `deploy/argocd/application.yaml`) syncs `deploy/` and rolls it out. It also reverts manual
 changes to anything in `deploy/`, so change the files instead. Secrets stay out of git and Argo
@@ -28,8 +28,9 @@ First-time setup only. Run everything from the repository root.
 
 ### 1. Registry
 
-Create the ECR Public repository `agent-factory/worker` in account `214575257891`, and make sure
-the `github-actions-ecr-push` role's trust policy allows `repo:diagrid-labs/diagrid-agent-factory:*`.
+ECR Public repository `agent-factory/worker` in account `214575257891`. CI pushes with the IAM
+role `github-actions-ecr-push-agent-factory`: it trusts only GitHub OIDC tokens for this repo's
+`main` and may push only to `agent-factory/*`.
 
 ### 2. Diagrid project
 
