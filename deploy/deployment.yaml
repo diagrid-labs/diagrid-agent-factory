@@ -38,20 +38,17 @@ spec:
               value: "true"
             - name: REQUIRE_APPROVAL
               value: "true"
+            # Each LLM call goes through the project's Dapr Conversation component
+            # llm-provider (OpenAI), the same OpenAI key the other demos use.
             - name: AGENT_BACKEND
-              value: claude
-            - name: CLAUDE_MODEL
-              value: claude-sonnet-5-5
+              value: conversation
+            - name: LLM_COMPONENT
+              value: llm-provider
             - name: GITHUB_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: github-bot
                   key: token
-            - name: ANTHROPIC_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: anthropic
-                  key: apiKey
             # Diagrid connection: the App ID's token and endpoints.
             - name: DAPR_API_TOKEN
               valueFrom:
@@ -71,8 +68,6 @@ spec:
           volumeMounts:
             - name: work
               mountPath: /work
-            - name: home
-              mountPath: /home/app
           resources:
             requests:
               cpu: 250m
@@ -81,9 +76,6 @@ spec:
               cpu: "1"
               memory: 1536Mi
       volumes:
-        # Checkouts and the Claude CLI's home. Lost on restart, which is fine:
-        # every activity re-clones, and agent sessions live in the Diagrid state store.
+        # Checkouts. Lost on restart, which is fine: every activity re-clones.
         - name: work
-          emptyDir: {}
-        - name: home
           emptyDir: {}

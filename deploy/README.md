@@ -17,7 +17,7 @@ CD: create them by hand as below.
 | Worker (`deployment.yaml`) | Deployment `agent-factory`: the three workflows and both agents in one pod |
 | Diagrid | project `agent-factory`, App ID `agent-factory`, managed workflow store and `kvstore` |
 | GitHub | repo `diagrid-labs/diagrid-agent-factory`, comments and PRs as the bot account |
-| LLM | Claude through the Claude Agent SDK, with an Anthropic API key |
+| LLM | Dapr Conversation component `llm-provider` (OpenAI `gpt-4.1`), with the OpenAI key the other demos use |
 
 Only one worker may watch a repository. Stop any local `diagrid dev run` pointed at the same
 `TARGET_REPO` before this one starts, or both pick up the same issues.
@@ -37,6 +37,12 @@ the `github-actions-ecr-push` role's trust policy allows `repo:diagrid-labs/diag
 diagrid login                 # production, then pick the Demo Production Catalyst org
 diagrid project create agent-factory --enable-managed-workflow --deploy-managed-kv --wait
 diagrid appid create agent-factory --project agent-factory --wait
+
+# The LLM: the same OpenAI key as verifiable-execution-demo, read from its secret, never printed.
+diagrid component create llm-provider --type conversation.openai --project agent-factory \
+  --metadata key="$(kubectl --context demo-production-catalyst -n verifiable-execution-demo \
+    get secret openai -o jsonpath='{.data.apiKey}' | base64 -d)" \
+  --metadata model=gpt-4.1 --wait
 ```
 
 ### 3. Secrets
@@ -51,12 +57,12 @@ kaf create secret generic catalyst-agent-factory \
   --from-literal=grpcEndpoint="$(diagrid project get agent-factory -o json | jq -r .status.endpoints.grpc.url)" \
   --from-literal=httpEndpoint="$(diagrid project get agent-factory -o json | jq -r .status.endpoints.http.url)"
 
-# The bot account's token: issues, pull requests and contents write on the repo.
+# The bot account's fine-grained token on diagrid-labs/diagrid-agent-factory:
+# contents, issues and pull requests read/write, metadata read.
 kaf create secret generic github-bot --from-literal=token="$GITHUB_BOT_TOKEN"
-kaf create secret generic anthropic --from-literal=apiKey="$ANTHROPIC_API_KEY"
 ```
 
-Keep both values in 1Password, never in this repo.
+Keep the token in 1Password, never in this repo.
 
 ### 4. Hand it to Argo CD
 
