@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 620" width="1180" height="620" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8a8a82"/></marker></defs>
+<rect width="1180" height="620" fill="#ffffff"/>
+<rect x="300" y="30" width="240" height="52" rx="9" fill="#e8edfa" stroke="#4a6fd8" stroke-width="2"/>
+<text x="420.0" y="61.95" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">Linear issues</text>
+<rect x="640" y="30" width="240" height="52" rx="9" fill="#e8edfa" stroke="#4a6fd8" stroke-width="2"/>
+<text x="760.0" y="61.95" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">GitHub pull requests</text>
+<rect x="390" y="140" width="400" height="70" rx="9" fill="#ffffff" stroke="#9a9a92" stroke-width="2"/>
+<text x="590.0" y="169.95" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">Monitor workflows, one set per engineer</text>
+<text x="590.0" y="189.4" text-anchor="middle" font-size="14" font-weight="400" fill="#555">watch the work and pick the lane</text>
+<path d="M420,82 V138" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M760,82 V138" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M590,210 V250" fill="none" stroke="#8a8a82" stroke-width="1.6"/>
+<path d="M118.0,250 H1068.0" fill="none" stroke="#8a8a82" stroke-width="1.6"/>
+<path d="M118.0,250 V298" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M308.0,250 V298" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M498.0,250 V298" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M688.0,250 V298" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M878.0,250 V298" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1068.0,250 V298" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<text x="602" y="236" font-size="14" fill="#555">cross-app child-workflow call; each lane is its own Diagrid app, &lt;engineer&gt;-&lt;lane&gt;</text>
+<rect x="30" y="300" width="176" height="250" rx="12" fill="#fafaf8" stroke="#7c3aed" stroke-width="2.5"/>
+<text x="118.0" y="334" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">implementer</text>
+<text x="118.0" y="356" text-anchor="middle" font-size="13" fill="#555">takes a Linear issue</text>
+<rect x="44" y="372" width="148" height="48" rx="9" fill="#fcede6" stroke="#d9683a" stroke-width="1.6"/>
+<text x="118.0" y="391.25" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">agent run</text>
+<text x="118.0" y="408.7" text-anchor="middle" font-size="12" font-weight="400" fill="#555">child workflow</text>
+<rect x="44" y="436" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="118.0" y="459.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">check against git</text>
+<rect x="44" y="490" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="118.0" y="513.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">report to monitor</text>
+<path d="M118.0,420 V434" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M118.0,474 V488" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="70.0" y="288" width="96" height="22" rx="11" fill="#7c3aed"/>
+<text x="118.0" y="304" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">in this demo</text>
+<rect x="220" y="300" width="176" height="250" rx="12" fill="#fafaf8" stroke="#7c3aed" stroke-width="2.5"/>
+<text x="308.0" y="334" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">reviewer</text>
+<text x="308.0" y="356" text-anchor="middle" font-size="13" fill="#555">takes a review request</text>
+<rect x="234" y="372" width="148" height="48" rx="9" fill="#fcede6" stroke="#d9683a" stroke-width="1.6"/>
+<text x="308.0" y="391.25" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">agent run</text>
+<text x="308.0" y="408.7" text-anchor="middle" font-size="12" font-weight="400" fill="#555">child workflow</text>
+<rect x="234" y="436" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="308.0" y="459.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">check against git</text>
+<rect x="234" y="490" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="308.0" y="513.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">report to monitor</text>
+<path d="M308.0,420 V434" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M308.0,474 V488" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="260.0" y="288" width="96" height="22" rx="11" fill="#7c3aed"/>
+<text x="308.0" y="304" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">in this demo</text>
+<rect x="410" y="300" width="176" height="250" rx="12" fill="#fafaf8" stroke="#cfcfc8" stroke-width="1.5"/>
+<text x="498.0" y="334" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">ci-fixer</text>
+<text x="498.0" y="356" text-anchor="middle" font-size="13" fill="#555">takes a failing check</text>
+<rect x="424" y="372" width="148" height="48" rx="9" fill="#fcede6" stroke="#d9683a" stroke-width="1.6"/>
+<text x="498.0" y="391.25" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">agent run</text>
+<text x="498.0" y="408.7" text-anchor="middle" font-size="12" font-weight="400" fill="#555">child workflow</text>
+<rect x="424" y="436" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="498.0" y="459.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">check against git</text>
+<rect x="424" y="490" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="498.0" y="513.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">report to monitor</text>
+<path d="M498.0,420 V434" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M498.0,474 V488" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="600" y="300" width="176" height="250" rx="12" fill="#fafaf8" stroke="#cfcfc8" stroke-width="1.5"/>
+<text x="688.0" y="334" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">pr-comment-resolver</text>
+<text x="688.0" y="356" text-anchor="middle" font-size="13" fill="#555">takes review comments</text>
+<rect x="614" y="372" width="148" height="48" rx="9" fill="#fcede6" stroke="#d9683a" stroke-width="1.6"/>
+<text x="688.0" y="391.25" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">agent run</text>
+<text x="688.0" y="408.7" text-anchor="middle" font-size="12" font-weight="400" fill="#555">child workflow</text>
+<rect x="614" y="436" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="688.0" y="459.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">check against git</text>
+<rect x="614" y="490" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="688.0" y="513.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">report to monitor</text>
+<path d="M688.0,420 V434" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M688.0,474 V488" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="790" y="300" width="176" height="250" rx="12" fill="#fafaf8" stroke="#cfcfc8" stroke-width="1.5"/>
+<text x="878.0" y="334" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">rebaser</text>
+<text x="878.0" y="356" text-anchor="middle" font-size="13" fill="#555">takes a merge conflict</text>
+<rect x="804" y="372" width="148" height="48" rx="9" fill="#fcede6" stroke="#d9683a" stroke-width="1.6"/>
+<text x="878.0" y="391.25" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">agent run</text>
+<text x="878.0" y="408.7" text-anchor="middle" font-size="12" font-weight="400" fill="#555">child workflow</text>
+<rect x="804" y="436" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="878.0" y="459.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">check against git</text>
+<rect x="804" y="490" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="878.0" y="513.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">report to monitor</text>
+<path d="M878.0,420 V434" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M878.0,474 V488" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="980" y="300" width="176" height="250" rx="12" fill="#fafaf8" stroke="#cfcfc8" stroke-width="1.5"/>
+<text x="1068.0" y="334" text-anchor="middle" font-size="17" font-weight="700" fill="#1a1a1a">merger</text>
+<text x="1068.0" y="356" text-anchor="middle" font-size="13" fill="#555">takes an approved PR</text>
+<rect x="994" y="372" width="148" height="48" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="1068.0" y="391.4" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">checks approval</text>
+<text x="1068.0" y="410.4" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">and CI, merges</text>
+<rect x="994" y="436" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="1068.0" y="459.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">check against git</text>
+<rect x="994" y="490" width="148" height="38" rx="9" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.4"/>
+<text x="1068.0" y="513.9" text-anchor="middle" font-size="14" font-weight="400" fill="#1a1a1a">report to monitor</text>
+<path d="M1068.0,420 V434" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1068.0,474 V488" fill="none" stroke="#8a8a82" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="30" y="579" width="18" height="18" rx="4" fill="#fcede6" stroke="#d9683a" stroke-width="1.6"/>
+<text x="56" y="593" font-size="14" fill="#333">calls an LLM</text>
+<rect x="240" y="579" width="18" height="18" rx="4" fill="#ffffff" stroke="#b8b8b0" stroke-width="1.6"/>
+<text x="266" y="593" font-size="14" fill="#333">plain code</text>
+<rect x="450" y="579" width="18" height="18" rx="4" fill="#e8edfa" stroke="#4a6fd8" stroke-width="1.6"/>
+<text x="476" y="593" font-size="14" fill="#333">where work comes from</text>
+</svg>
