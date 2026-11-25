@@ -24,7 +24,7 @@
   <rect width="1600" height="900" fill="#ffffff"/>
 
   <text x="40" y="62" class="t">Diagrid Agent Factory</text>
-  <text x="40" y="96" class="st">Agents do the work, people hold the gates, and plain workflow code runs everything in between.</text>
+  <text x="40" y="96" class="st">How an issue becomes a pull request. Purple steps call an LLM, grey steps are plain code, orange steps wait for a person.</text>
 
   <!-- People -->
   <rect x="40" y="150" width="260" height="210" rx="12" class="ppl"/>
@@ -48,7 +48,7 @@
 
   <!-- Worker -->
   <rect x="340" y="130" width="920" height="600" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="360" y="162" class="h">Worker: three Dapr workflows, run durably by Diagrid</text>
+  <text x="360" y="162" class="h">Worker: three Dapr workflows, run by Diagrid</text>
 
   <!-- issue_watch -->
   <rect x="380" y="185" width="300" height="70" rx="10" class="det"/>

@@ -1,14 +1,14 @@
 # Diagrid Agent Factory
 
-An automation framework for engineering work that agents do and a workflow
-governs: agents pick up issues, write the code, review each other's work and
-review pull requests, while people decide what gets worked on, what gets opened
-and what gets merged.
+Two LLM agents turn GitHub issues into pull requests and review pull requests.
+A workflow runs every step around them: it checks their changes, runs the tests,
+and waits for a person to reply `/approve` before it opens a pull request.
+People choose the issues and do the merging.
 
-It is built on [Dapr Workflows](https://docs.dapr.io/developing-applications/building-blocks/workflow/),
+It runs on [Dapr Workflows](https://docs.dapr.io/developing-applications/building-blocks/workflow/),
 [Dapr Agents](https://github.com/dapr/dapr-agents) and
-[Diagrid](https://www.diagrid.io/catalyst), and it is a small, readable
-version of how Diagrid runs coding agents on its own repositories.
+[Diagrid](https://www.diagrid.io/catalyst). Diagrid runs coding agents on its own
+repositories the same way; this is a smaller version of that setup.
 
 ## Who does what
 
@@ -21,9 +21,6 @@ version of how Diagrid runs coding agents on its own repositories.
 | Approve opening a pull request (`/approve`) | yes | | |
 | Hold the token, push, open the PR, set labels | | yes | |
 | Merge | yes | | |
-
-Agents do the work, people hold every gate, and the workflow enforces the rules
-in between.
 
 ## How work moves
 
@@ -59,7 +56,7 @@ workflow; every other step is a workflow activity in plain code.
 | **The workflow checks the agent's work.** After the implementer finishes, the workflow lists the changed files and runs the tests itself. | `verify_workspace` in [`factory/activities.py`](factory/activities.py) |
 | **A fresh reviewer.** A second agent with no shared context reviews the diff and ends with `VERDICT: APPROVE` or `REQUEST_CHANGES`. | [`agents/reviewer.md`](agents/reviewer.md) |
 | **Least privilege.** Agents get five tools: list, read, search, write (inside one directory only) and run tests. They never see the GitHub token and cannot run git, push, label or merge. With the Claude backend, Claude's own shell and edit tools are switched off. | [`factory/tools.py`](factory/tools.py) |
-| **People hold the gates.** Only `/approve` and `/reject` from owners, members and collaborators count, and `AUTO_PICKUP` only picks up issues they opened. The review bot comments; it never approves, so it does not count toward branch protection. | [`factory/github.py`](factory/github.py) |
+| **Only trusted people count.** Only `/approve` and `/reject` from owners, members and collaborators count, and `AUTO_PICKUP` only picks up issues they opened. The review bot comments; it never approves, so it does not count toward branch protection. | [`factory/github.py`](factory/github.py) |
 | **Agents are configuration.** Each agent's role, goal, tools, iteration limit and instructions live in one file. Add a file to add an agent. | [`agents/`](agents) |
 | **One run per work item.** An issue or a PR head commit is one workflow instance with a stable id, so the same item is never worked on twice. | `_start_once` in [`factory/activities.py`](factory/activities.py) |
 
@@ -72,7 +69,7 @@ more rounds.
 The same pattern covers more of the pull request lifecycle. Diagrid's own setup
 also has agents that fix failing CI, answer review comments and rebase
 conflicting pull requests. Each is one more workflow that reuses the activities
-here, plus one more file in `agents/`, under the same rules.
+here, plus one more file in `agents/`.
 
 To use GitLab instead of GitHub, replace [`factory/github.py`](factory/github.py).
 The workflows only call it through the activities, and need the same few calls
