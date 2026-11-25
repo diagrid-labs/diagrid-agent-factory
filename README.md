@@ -125,7 +125,7 @@ factory/
   github.py          the GitHub calls; swap for GitLab merge requests
   prompts.py         task text and verdict parsing (pure functions)
 sample-app/          the code the agents work on, with tests
-scripts/             seed_issues.py, reset_demo.py (what Reset demo runs), setup_diagrid.sh
+scripts/             the reset and the demo issues, run by the Reset demo action
 dev-diagrid.yaml     run file for `diagrid dev run` (docs/local.md)
 Dockerfile, deploy/  the hosted copy on Kubernetes, synced by Argo CD (deploy/README.md)
 ```

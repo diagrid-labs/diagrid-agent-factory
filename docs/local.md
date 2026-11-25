@@ -22,7 +22,8 @@ Pick how the agents think (`AGENT_BACKEND` in `.env`):
 - `conversation`: any LLM behind a Dapr Conversation component (OpenAI, Anthropic, Bedrock, Azure OpenAI, Ollama, ...). Create it with:
 
   ```bash
-  OPENAI_API_KEY=... scripts/setup_diagrid.sh agent-factory      # or ANTHROPIC_API_KEY=...
+  diagrid component create llm-provider --type conversation.openai --project agent-factory \
+    --metadata key="$OPENAI_API_KEY" --metadata model=gpt-4.1 --wait
   ```
 
 Start the worker, connected to Diagrid:
