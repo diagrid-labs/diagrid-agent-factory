@@ -1,28 +1,9 @@
-# Actions → Reset demo → Run workflow: puts the demo back to its start and opens
-# the issue you pick, so you know which PR the agents will come back with.
+# Actions → Reset demo → Run workflow: puts the demo back to its start. Open the
+# demo's issue yourself afterwards.
 name: Reset demo
 
 on:
   workflow_dispatch:
-    inputs:
-      issue:
-        description: Issue to open after the reset
-        type: choice
-        default: "1: Short positions show the wrong sign in P&L"
-        options:
-          - "1: Short positions show the wrong sign in P&L"
-          - "2: Spread and pip value are 100x off for JPY pairs"
-          - "3: Add margin_required(units, price, leverage)"
-          - "all three"
-          - "none, reset only"
-      start:
-        description: Label it agent:implement so the implementer starts at once
-        type: boolean
-        default: true
-      dry_run:
-        description: Only show what would happen
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -41,6 +22,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Optional. Without it the agents' running workflows on Diagrid are left alone.
       DIAGRID_API_KEY: ${{ secrets.DIAGRID_API_KEY }}
+      WORK_ROOT: ${{ github.workspace }}/.work
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -56,20 +38,7 @@ jobs:
           ./diagrid login --api-key "$DIAGRID_API_KEY"
 
       - name: Reset
-        env:
-          ISSUE: ${{ inputs.issue }}
-          START: ${{ inputs.start }}
-          DRY_RUN: ${{ inputs.dry_run }}
-          WORK_ROOT: ${{ runner.temp }}/work
         run: |
-          args=()
-          [[ "$DRY_RUN" == "true" ]] || args+=(--yes)
-          [[ "$START" == "true" ]] && args+=(--label)
-          case "$ISSUE" in
-            "all three") ;;
-            none*) args+=(--no-seed) ;;
-            *) args+=(--only "${ISSUE%%:*}") ;;
-          esac
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          uv run python scripts/reset_demo.py "${args[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+          uv run python scripts/reset_demo.py --yes --no-seed | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"

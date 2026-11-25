@@ -25,25 +25,22 @@ How it is deployed, and its secrets: [deploy/README.md](deploy/README.md).
 
 ## Run the demo
 
-1. **Reset.** Open **Actions → [Reset demo](https://github.com/diagrid-labs/diagrid-agent-factory/actions/workflows/reset-demo.yaml) → Run workflow**,
-   pick an issue and keep **start** ticked. The reset stops the agents' running
-   workflows, closes their issues and pull requests, deletes their `agent/*`
-   branches, puts the bugs back in `sample-app/`, and opens the issue you picked
-   with the `agent:implement` label. The run's summary lists what it closed and opened.
-2. **Watch the issue.** Within 30 seconds the worker claims it and comments with
-   its workflow id. Each implementer and reviewer round is posted as a comment.
-3. **Show the run.** In the Diagrid console, project `agent-factory`, **Workflows**:
-   the run for the issue shows each step, the two agent runs, and the wait for approval.
-4. **Approve.** When the issue asks, reply `/approve` as an org member, and the
+1. **Reset.** Open **Actions → [Reset demo](https://github.com/diagrid-labs/diagrid-agent-factory/actions/workflows/reset-demo.yaml) → Run workflow**.
+   It stops the agents' running workflows, closes their issues and pull requests,
+   deletes their `agent/*` branches and puts the bugs back in `sample-app/`. The
+   run's summary lists what it closed.
+2. **Open an issue** on this repository as an org member, no label needed. For a
+   fix you can predict, use one of the seeded bugs in
+   [`scripts/seed_issues.py`](scripts/seed_issues.py), for example "Short positions
+   show the wrong sign in P&L".
+3. **Watch the issue.** Within 30 seconds the worker claims it and comments with
+   a link to its run. Each implementer and reviewer round is posted as a comment.
+4. **Show the run.** The link opens the run in the Diagrid console: each step,
+   the two agent runs, and the wait for approval.
+5. **Approve.** When the issue asks, reply `/approve` as an org member, and the
    workflow opens the pull request. `/reject` stops it.
-5. **Review bot.** Label any pull request `agent:review` and the reviewer agent
+6. **Review bot.** Label any pull request `agent:review` and the reviewer agent
    posts a review on it.
-
-You can also open your own issue on this repository as an org member. The worker
-picks it up without a label.
-
-Pick one seeded issue to know which pull request to expect. Each has a single
-clear fix, though the code differs a little between runs, since the agents are LLMs.
 
 ## Who does what
 
@@ -232,6 +229,6 @@ factory/
   github.py          the GitHub calls; swap for GitLab merge requests
   prompts.py         task text and verdict parsing (pure functions)
 sample-app/          the code the agents work on, with tests
-scripts/             the reset and the demo issues, run by the Reset demo action
+scripts/             reset_demo.py (what Reset demo runs) and the seeded demo issues
 Dockerfile, deploy/  the hosted copy on Kubernetes, synced by Argo CD (deploy/README.md)
 ```
