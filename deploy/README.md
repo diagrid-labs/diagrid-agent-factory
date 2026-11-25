@@ -20,8 +20,7 @@ CD: create them by hand as below.
 | GitHub | repo `diagrid-labs/diagrid-agent-factory`, comments and PRs as the bot account |
 | LLM | Dapr Conversation component `llm-provider` (OpenAI `gpt-4.1`), with the OpenAI key the other demos use |
 
-Only one worker may watch a repository. Stop any local `diagrid dev run` pointed at the same
-`TARGET_REPO` before this one starts, or both pick up the same issues.
+Only one worker may watch a repository, or two would pick up the same issues.
 
 ## Deploy
 
