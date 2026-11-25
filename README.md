@@ -126,8 +126,5 @@ factory/
   prompts.py         task text and verdict parsing (pure functions)
 sample-app/          the code the agents work on, with tests
 scripts/             the reset and the demo issues, run by the Reset demo action
-dev-diagrid.yaml     run file for `diagrid dev run` (docs/local.md)
 Dockerfile, deploy/  the hosted copy on Kubernetes, synced by Argo CD (deploy/README.md)
 ```
-
-To work on the factory itself, run a copy on your laptop: [docs/local.md](docs/local.md).

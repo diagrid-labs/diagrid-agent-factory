@@ -47,7 +47,7 @@ def _start_watch(client: wf.DaprWorkflowClient, settings: dict) -> None:
     except Exception:  # noqa: BLE001
         state = None
     if state is not None and state.runtime_status.name in {"RUNNING", "PENDING"}:
-        # continue_as_new carries the settings forward, so a changed .env only
+        # continue_as_new carries the settings forward, so a changed setting only
         # takes effect if the watcher starts again.
         if json.loads(state.serialized_input or "null") == settings:
             log.info("issue-watch already running; it carries on from its last checkpoint")

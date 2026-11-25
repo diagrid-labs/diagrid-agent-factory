@@ -1,9 +1,4 @@
-"""Open the demo issues on TARGET_REPO.
-
-    uv run python scripts/seed_issues.py            # open them, unlabelled
-    uv run python scripts/seed_issues.py --label    # and hand them to the implementer at once
-    uv run python scripts/seed_issues.py --only 2   # open only the second one
-"""
+"""Open the demo issues on TARGET_REPO. The Reset demo action calls seed()."""
 
 from __future__ import annotations
 

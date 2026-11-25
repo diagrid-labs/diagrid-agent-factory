@@ -1,12 +1,6 @@
 """Put the demo back to its starting point, so it can be run again.
 
-The Reset demo action runs this. To run it by hand:
-
-    uv run python scripts/reset_demo.py                 # show what would happen
-    uv run python scripts/reset_demo.py --yes           # do it, then open fresh issues
-    uv run python scripts/reset_demo.py --yes --label   # ...and hand them to the implementer
-    uv run python scripts/reset_demo.py --yes --no-seed # reset only
-    uv run python scripts/reset_demo.py --yes --label --only 1  # one issue, so one known PR
+The Reset demo action runs this.
 
 What it does, in order:
 1. terminates the agents' running workflows on Diagrid (the watcher keeps running),
@@ -14,8 +8,7 @@ What it does, in order:
 3. closes the open demo issues: any with an agent:* label or a seeded title,
 4. restores the scope directory (sample-app/) on the default branch from the
    `demo-baseline` tag, so the seeded bugs are there again,
-5. clears the local checkouts under WORK_ROOT,
-6. opens the demo issues again.
+5. opens the demo issues again.
 
 Only TARGET_REPO is touched. Pass --project if your Diagrid project is not
 called agent-factory.
@@ -150,12 +143,6 @@ def main() -> None:
 
     step(f"{rt.settings.scope}/ on the default branch")
     restore_scope(rt, gh, apply)
-
-    step(f"Local checkouts in {rt.work_root}")
-    for path in sorted(rt.work_root.iterdir()):
-        print(f"   remove {path.name}")
-        if apply:
-            shutil.rmtree(path, ignore_errors=True)
 
     if args.no_seed:
         return
