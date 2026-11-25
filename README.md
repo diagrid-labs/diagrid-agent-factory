@@ -75,6 +75,65 @@ rounds, a `/reject`, or no answer in 24 hours), the issue is labelled
 The two agent steps are the only ones that call an LLM. Each runs as a child
 workflow; every other step is a workflow activity in plain code.
 
+## Workflows and steps
+
+Five workflow types run: three of ours and the two agents. Only the agents are
+child workflows. `issue_watch` starts the other two as their own top-level runs,
+with a fixed id per issue or PR commit, so a restart of the watcher leaves them running.
+
+```
+issue_watch  (polls every 30 s, then continue-as-new)
+ ├─ starts ─► implement_issue      issue-<repo>-<N>
+ │              ├─ child ─► implementer agent   …-implement-<round>
+ │              ├─ child ─► reviewer agent      …-review-<round>
+ │              └─ waits for the "approval" event ◄─ raised by issue_watch on /approve or /reject
+ └─ starts ─► review_pull_request  review-<repo>-<PR>-<sha>
+                └─ child ─► reviewer agent      …-review
+```
+
+**`issue_watch`** (one run, always on)
+
+| Step | Kind |
+|---|---|
+| `poll`: list labelled issues and PRs, start a run for each new one, forward `/approve` and `/reject` | activity |
+| wait `POLL_SECONDS` (30) | timer |
+| restart with the same settings, so the history stays small | continue-as-new |
+
+**`implement_issue`** (one run per issue)
+
+| # | Step | Kind |
+|---|---|---|
+| 1 | `claim_issue`: label it, comment with a link to the run | activity |
+| 2 | `prepare_workspace`: clone onto `agent/issue-N` | activity |
+| 3 | implementer agent changes the code | child workflow |
+| 4 | `verify_workspace`: the workflow lists the changes and runs the tests | activity |
+| 5 | reviewer agent reviews the diff, then `comment` posts the round | child workflow, activity |
+| | steps 3–5 again if needed, at most 2 rounds | |
+| 6 | `request_approval`: post the diff, label `agent:awaiting-approval` | activity |
+| 7 | the `approval` event, or a 24-hour timer, whichever comes first | event, timer |
+| 8 | `open_pull_request`: commit, push, open the PR | activity |
+| 9 | `set_labels` and `comment`: `agent:done` and the PR link | activities |
+
+When a limit runs out, `set_labels` and `comment` label the issue `agent:needs-human` instead.
+
+**`review_pull_request`** (one run per PR head commit)
+
+| Step | Kind |
+|---|---|
+| `fetch_pr`: the PR and its diff | activity |
+| `prepare_workspace`: check out the head commit | activity |
+| reviewer agent reviews it | child workflow |
+| `post_review`: a COMMENT review and the `agent:reviewed` label | activity |
+
+**The agents** are Dapr Agents `DurableAgent` runs (`dapr.agents.implementer.workflow`,
+`dapr.agents.reviewer.workflow`). Inside them each LLM call, through the
+`llm-provider` component, and each tool call is its own activity. The tools are
+`list_files`, `read_file`, `search_code`, `run_tests`, and `write_file` for the
+implementer only.
+
+The checkout the agents work in lives on the worker's persistent disk until
+`/approve`, so a restart or redeploy mid-run loses nothing.
+
 ## The rules, and where they live
 
 | Rule | Where |
@@ -111,6 +170,54 @@ restart of the worker and continues from its last completed step, without
 repeating work. Start more workers with the same app id
 and Diagrid spreads the runs across them. Every run, step and agent run shows
 in the Diagrid console.
+
+## How Diagrid runs this in production
+
+Diagrid's own setup, agentic engineering, splits pull request work into
+**lanes**. A lane is one kind of work with its own agent file, its own worker and
+its own Diagrid app, named `<engineer>-<lane>`. A monitor workflow watches each
+engineer's pull requests and hands an item to the right lane with a cross-app
+child-workflow call; the lane runs its agent as a child workflow, checks the
+result against git, and reports back.
+
+| Lane | Takes | Does |
+|---|---|---|
+| implementer | a Linear issue | writes the change, runs a review loop, opens the PR |
+| reviewer | a review request | reviews the PR from a read-only checkout |
+| ci-fixer | a failing check | fixes it and pushes |
+| pr-comment-resolver | unresolved review comments | answers them or changes the code |
+| rebaser | a merge conflict | merges the base branch, resolves conflicts |
+| merger | an approved PR | merges it once it is approved and green |
+
+This demo is the implementer and reviewer lanes, cut down to run as one hosted service.
+
+| | This demo | Production (agentic engineering) |
+|---|---|---|
+| Where it starts | A GitHub issue or label, polled every 30 s | Linear issues and a PR monitor |
+| Apps | One worker app with both agents | One Diagrid app per lane per engineer |
+| Where workers run | One pod on the demo cluster | Each engineer's own machine, with their own logins |
+| Model | OpenAI `gpt-4.1` through Dapr Conversation | Claude Opus through the Claude Agent SDK, effort set per lane |
+| Checkouts | A persistent disk, one clone per run | Shared repo mirrors, a checkout per item, cleaned up when it ends |
+| Isolation | Five tools held to one folder | An OS sandbox per run, plus the same tool limits |
+| Approval | `/approve` on the issue | The engineer approves the head before a push to a public repo |
+| Merge | A person | The merger lane, once approved and green |
+| Watching | The Diagrid console | The console and a board of every PR's lane and state |
+
+The workflow rules are the same in both: the workflow owns the steps, checks the
+agent's work against git and the tests, and holds the token.
+
+## Materials
+
+| What | Where |
+|---|---|
+| Portal page: run guide, code snippets, links | [demo portal](https://diagrid-demo-portal.westeurope.cloudapp.azure.com/demos/agent-factory/) |
+| Diagrid console | [project `agent-factory`, Workflows](https://catalyst.diagrid.io/workflows?org=79a0006b-2ca1-4d95-a0f9-809467822799&project=agent-factory) |
+| Reset the demo | [Actions → Reset demo](https://github.com/diagrid-labs/diagrid-agent-factory/actions/workflows/reset-demo.yaml) |
+| Introduction and presenter guide | [Claude doc](https://claude.ai/artifact/6aZdj9w7yVX2Mr3bDqjrUi) |
+| Slides (draft) | [Google Slides](https://docs.google.com/presentation/d/1k0s8I3gK07ekrm_JaMWaxDgIRj5yrtRcTGrB-sPfzOc/edit) |
+| Architecture diagram, editable | [Lucid](https://lucid.app/lucidchart/b5f0bafa-5591-48df-8f2c-5dcd964cefd3/edit) |
+| Diagrams in this repo | `docs/architecture.png`, `docs/who-does-what.png` (SVG beside each) |
+| Deploy, secrets, teardown | [deploy/README.md](deploy/README.md) |
 
 ## Layout
 
