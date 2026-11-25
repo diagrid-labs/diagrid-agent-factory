@@ -138,7 +138,12 @@ demo issues again.
 ```bash
 uv run python scripts/reset_demo.py                  # dry run: shows what it would do
 uv run python scripts/reset_demo.py --yes --label    # reset and start the agents
+uv run python scripts/reset_demo.py --yes --label --only 1   # one issue, so you know the PR to expect
 ```
+
+Or without a checkout: **Actions → Reset demo → Run workflow**, pick the issue,
+and it does the same. Add a `DIAGRID_API_KEY` repo secret so it can also
+terminate the agents' running workflows; without it they are left alone.
 
 The fixes differ a little from run to run, since the agents are LLMs. The
 workflow's checks and the review loop keep the outcome the same.

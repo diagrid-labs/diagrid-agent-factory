@@ -82,7 +82,8 @@ The log ends with `ready: label an issue 'agent:implement' ...` once the worker 
 
 Open an issue on `diagrid-labs/diagrid-agent-factory` as an org member. Within 30 seconds the
 worker labels it and comments with its workflow run. The rest is in the [README](../README.md).
-Run `scripts/reset_demo.py --project agent-factory` with the production CLI login to reset it.
+To reset it, run **Actions → Reset demo** in the repo, or `scripts/reset_demo.py --project agent-factory`
+with the production CLI login.
 
 ## Tear down
 

@@ -2,10 +2,12 @@
 
     uv run python scripts/seed_issues.py            # open them, unlabelled
     uv run python scripts/seed_issues.py --label    # and hand them to the implementer at once
+    uv run python scripts/seed_issues.py --only 2   # open only the second one
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -40,8 +42,11 @@ ISSUES = [
 ]
 
 
-def seed(gh: GitHub, label: bool) -> None:
-    for title, body in ISSUES:
+def seed(gh: GitHub, label: bool, only: list[int] | None = None) -> None:
+    """Open the issues; `only` holds 1-based positions in ISSUES."""
+    for i, (title, body) in enumerate(ISSUES, start=1):
+        if only and i not in only:
+            continue
         issue = gh.create_issue(title, body)
         if label:
             gh.add_labels(issue["number"], config.LABEL_IMPLEMENT)
@@ -49,8 +54,13 @@ def seed(gh: GitHub, label: bool) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--label", action="store_true", help="label them agent:implement")
+    parser.add_argument("--only", type=int, action="append", choices=range(1, len(ISSUES) + 1),
+                        help="open only this issue (1-based, repeatable)")
+    args = parser.parse_args()
     rt = config.load()
-    seed(GitHub(rt.github_token, rt.settings.repo), "--label" in sys.argv)
+    seed(GitHub(rt.github_token, rt.settings.repo), args.label, args.only)
 
 
 if __name__ == "__main__":
