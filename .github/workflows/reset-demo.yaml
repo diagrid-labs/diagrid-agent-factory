@@ -39,7 +39,6 @@ jobs:
     env:
       TARGET_REPO: ${{ github.repository }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      WORK_ROOT: ${{ runner.temp }}/work
       # Optional. Without it the agents' running workflows on Diagrid are left alone.
       DIAGRID_API_KEY: ${{ secrets.DIAGRID_API_KEY }}
     steps:
@@ -61,6 +60,7 @@ jobs:
           ISSUE: ${{ inputs.issue }}
           START: ${{ inputs.start }}
           DRY_RUN: ${{ inputs.dry_run }}
+          WORK_ROOT: ${{ runner.temp }}/work
         run: |
           args=()
           [[ "$DRY_RUN" == "true" ]] || args+=(--yes)
