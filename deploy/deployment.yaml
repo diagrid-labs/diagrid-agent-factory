@@ -36,6 +36,9 @@ spec:
             # A new issue from an org member starts the agents; no label needed.
             - name: AUTO_PICKUP
               value: "true"
+            # Links the "Picked up" comment on an issue to its run in the Diagrid console.
+            - name: CONSOLE_URL
+              value: "https://catalyst.diagrid.io/workflows/agent-factory/{instance_id}?org=79a0006b-2ca1-4d95-a0f9-809467822799&project=agent-factory"
             - name: REQUIRE_APPROVAL
               value: "true"
             # Each LLM call goes through the project's Dapr Conversation component

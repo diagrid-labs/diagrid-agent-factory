@@ -8,6 +8,7 @@ commit when there is nothing to commit, and reuses a PR that already exists.
 from __future__ import annotations
 
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -116,6 +117,12 @@ def verify_workspace(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
 # Issues ---------------------------------------------------------------------
 
 
+def run_link(instance_id: str) -> str:
+    """The run's id, linked to its page in the Diagrid console when CONSOLE_URL is set."""
+    url = os.environ.get("CONSOLE_URL", "")
+    return f"[`{instance_id}`]({url.format(instance_id=instance_id)})" if url else f"`{instance_id}`"
+
+
 def claim_issue(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
     number = inp["number"]
     issue = gh().issue(number)
@@ -125,7 +132,7 @@ def claim_issue(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
     gh().remove_label(number, config.LABEL_IMPLEMENT)
     gh().comment(
         number,
-        f"Picked up by the implementer agent. Workflow run `{inp['instance_id']}` on Diagrid.",
+        f"Picked up by the implementer agent. Workflow run {run_link(inp['instance_id'])} on Diagrid.",
     )
     return {
         "skip": False,

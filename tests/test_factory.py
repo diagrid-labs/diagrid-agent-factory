@@ -61,3 +61,12 @@ def test_auto_pickup_only_new_trusted_issues():
     assert needs_pickup({"author_association": "OWNER", "labels": [{"name": "bug"}]})
     assert not needs_pickup({"author_association": "NONE", "labels": []})
     assert not needs_pickup({"author_association": "MEMBER", "labels": [{"name": "agent:needs-human"}]})
+
+
+def test_run_link(monkeypatch):
+    from factory.activities import run_link
+
+    monkeypatch.delenv("CONSOLE_URL", raising=False)
+    assert run_link("issue-x-1") == "`issue-x-1`"
+    monkeypatch.setenv("CONSOLE_URL", "https://c/workflows/app/{instance_id}?org=o")
+    assert run_link("issue-x-1") == "[`issue-x-1`](https://c/workflows/app/issue-x-1?org=o)"
