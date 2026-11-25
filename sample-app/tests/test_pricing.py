@@ -21,3 +21,8 @@ def test_pip_value_eurusd():
 def test_long_position_pnl():
     pos = Position("EURUSD", "buy", 10_000, 1.1000)
     assert position_pnl(pos, Quote("EURUSD", 1.1050, 1.1052)) == 50.0
+
+def test_short_position_pnl():
+    # Sell 10k EURUSD at 1.1000; quote now 1.1050/1.1052 (must close at ask, 1.1052)
+    pos = Position("EURUSD", "sell", 10_000, 1.1000)
+    assert position_pnl(pos, Quote("EURUSD", 1.1050, 1.1052)) == -52.0
