@@ -17,6 +17,7 @@ import certifi
 os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
 
+import json  # noqa: E402
 import logging  # noqa: E402
 import signal  # noqa: E402
 import threading  # noqa: E402
@@ -42,12 +43,18 @@ def _wait_for_sidecar(client: wf.DaprWorkflowClient) -> None:
 
 def _start_watch(client: wf.DaprWorkflowClient, settings: dict) -> None:
     try:
-        state = client.get_workflow_state(workflows.WATCH_INSTANCE, fetch_payloads=False)
+        state = client.get_workflow_state(workflows.WATCH_INSTANCE, fetch_payloads=True)
     except Exception:  # noqa: BLE001
         state = None
     if state is not None and state.runtime_status.name in {"RUNNING", "PENDING"}:
-        log.info("issue-watch already running; it carries on from its last checkpoint")
-        return
+        # continue_as_new carries the settings forward, so a changed .env only
+        # takes effect if the watcher starts again.
+        if json.loads(state.serialized_input or "null") == settings:
+            log.info("issue-watch already running; it carries on from its last checkpoint")
+            return
+        log.info("settings changed: restarting issue-watch")
+        client.terminate_workflow(workflows.WATCH_INSTANCE)
+        client.wait_for_workflow_completion(workflows.WATCH_INSTANCE, timeout_in_seconds=60)
     if state is not None:
         client.purge_workflow(workflows.WATCH_INSTANCE)
     client.schedule_new_workflow("issue_watch", input=settings, instance_id=workflows.WATCH_INSTANCE)
