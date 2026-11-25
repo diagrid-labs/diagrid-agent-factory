@@ -52,6 +52,7 @@ class Settings:
     max_review_rounds: int
     require_approval: bool
     approval_timeout_hours: int
+    auto_pickup: bool = False  # a new issue from a trusted author starts work without a label
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -75,7 +76,7 @@ def load() -> Runtime:
     load_dotenv(ROOT / ".env")
     repo = os.environ.get("TARGET_REPO", "").strip()
     if repo.count("/") != 1:
-        raise SystemExit("Set TARGET_REPO to owner/name, for example diagrid-labs/catalyst-agent-factory.")
+        raise SystemExit("Set TARGET_REPO to owner/name, for example diagrid-labs/diagrid-agent-factory.")
     settings = Settings(
         repo=repo,
         scope=os.environ.get("TARGET_SCOPE", "sample-app").strip("/"),
@@ -84,6 +85,7 @@ def load() -> Runtime:
         max_review_rounds=int(os.environ.get("MAX_REVIEW_ROUNDS", "2")),
         require_approval=_bool("REQUIRE_APPROVAL", True),
         approval_timeout_hours=int(os.environ.get("APPROVAL_TIMEOUT_HOURS", "24")),
+        auto_pickup=_bool("AUTO_PICKUP", False),
     )
     work_root = Path(os.environ.get("WORK_ROOT", ROOT / ".work")).resolve()
     work_root.mkdir(parents=True, exist_ok=True)

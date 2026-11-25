@@ -2,7 +2,7 @@
 
     uv run python -m factory.main
 
-Run several copies and Catalyst spreads the workflow and activity work across
+Run several copies and Diagrid spreads the workflow and activity work across
 them; kill any of them at any point and the runs carry on where they stopped.
 """
 
@@ -13,7 +13,7 @@ import os
 import certifi
 
 # python.org builds of Python on macOS ship without root certificates; use certifi's
-# so the HTTPS calls to the Catalyst endpoints verify. Must run before dapr is imported.
+# so the HTTPS calls to the Diagrid endpoints verify. Must run before dapr is imported.
 os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
 

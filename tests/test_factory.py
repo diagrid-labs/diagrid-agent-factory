@@ -52,3 +52,12 @@ def test_only_agent_workspaces(workspace: Path, tmp_path: Path):
 def test_search_and_tests(workspace: Path):
     assert "app/a.py:1" in tools.search_code(workspace=str(workspace), text="x = 1")
     assert tools.run_tests(workspace=str(workspace)).startswith("PASSED")
+
+
+def test_auto_pickup_only_new_trusted_issues():
+    from factory.activities import needs_pickup
+
+    assert needs_pickup({"author_association": "MEMBER", "labels": []})
+    assert needs_pickup({"author_association": "OWNER", "labels": [{"name": "bug"}]})
+    assert not needs_pickup({"author_association": "NONE", "labels": []})
+    assert not needs_pickup({"author_association": "MEMBER", "labels": [{"name": "agent:needs-human"}]})

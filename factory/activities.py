@@ -125,7 +125,7 @@ def claim_issue(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
     gh().remove_label(number, config.LABEL_IMPLEMENT)
     gh().comment(
         number,
-        f"Picked up by the implementer agent. Workflow run `{inp['instance_id']}` on Diagrid Catalyst.",
+        f"Picked up by the implementer agent. Workflow run `{inp['instance_id']}` on Diagrid.",
     )
     return {
         "skip": False,
@@ -178,7 +178,7 @@ def open_pull_request(ctx: wf.WorkflowActivityContext, inp: dict) -> dict:
     if _git(path, "status", "--porcelain").strip():
         _git(
             path,
-            "-c", "user.name=Catalyst Agent Factory",
+            "-c", "user.name=Diagrid Agent Factory",
             "-c", "user.email=agent-factory@users.noreply.github.com",
             "commit", "--quiet", "-m", f"{inp['title']}\n\nResolves #{inp['number']}.",
         )
@@ -249,10 +249,23 @@ def _approval_answer(number: int) -> str | None:
     return answer
 
 
+def needs_pickup(issue: dict) -> bool:
+    """AUTO_PICKUP: opened by a trusted person and not yet touched by the factory."""
+    labels = [label["name"] for label in issue.get("labels", [])]
+    return issue.get("author_association") in TRUSTED and not any(n.startswith("agent:") for n in labels)
+
+
 def poll(ctx: wf.WorkflowActivityContext, settings: dict) -> dict:
     repo = settings["repo"]
     client = wf.DaprWorkflowClient()
     started, approvals = [], []
+
+    if settings.get("auto_pickup"):
+        # Only issues a trusted person opened, and only once: any agent:* label
+        # (including agent:needs-human or agent:done) means it was already handled.
+        for issue in gh().open_issues():
+            if needs_pickup(issue):
+                gh().add_labels(issue["number"], config.LABEL_IMPLEMENT)
 
     for issue in gh().issues_with_label(config.LABEL_IMPLEMENT):
         iid = issue_instance_id(repo, issue["number"])

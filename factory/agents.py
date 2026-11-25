@@ -3,7 +3,7 @@
 Each agents/<name>.md has YAML front matter (name, role, goal, tools,
 max_iterations) and the instructions as its body. Adding an agent is adding a
 file; every agent runs on the same workflow runtime, registers itself in the
-Catalyst agent registry and can be called from any workflow as a child workflow.
+Diagrid agent registry and can be called from any workflow as a child workflow.
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def _brain(spec: Spec, backend: str, llm_component: str, claude_model: str, stor
     # machine's Claude login, or CLAUDE_CODE_OAUTH_TOKEN / ANTHROPIC_API_KEY.
     # builtin_tools stays empty: Claude gets only the tools in the agent file,
     # never its own Bash, Edit or Read. The session transcript is kept in the
-    # Catalyst state store, so a run picks up where it stopped on any host.
+    # Diagrid state store, so a run picks up where it stopped on any host.
     from dapr_agents.agents.executors import (
         ClaudeAgentExecutor,
         ClaudeAgentExecutorConfig,
@@ -108,7 +108,7 @@ def build(
             tools=[agent_tools.ALL[t] for t in spec.tools],
             **_brain(spec, backend, llm_component, claude_model, store),
             state=AgentStateConfig(store=store),
-            # Listed in the Catalyst agent registry, each in a team of its own: agents in
+            # Listed in the Diagrid agent registry, each in a team of its own: agents in
             # one team become each other's tools, and here the workflow, not the
             # implementer, decides when the reviewer runs.
             registry=AgentRegistryConfig(

@@ -1,7 +1,7 @@
 [project]
-name = "catalyst-agent-factory"
+name = "diagrid-agent-factory"
 version = "0.1.0"
-description = "Issue-to-PR coding agents and a PR review bot on Dapr Workflows and Diagrid Catalyst"
+description = "Issue-to-PR coding agents and a PR review bot on Dapr Workflows and Diagrid"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "certifi>=2026.11.20",

@@ -1,4 +1,4 @@
-# Catalyst Agent Factory
+# Diagrid Agent Factory
 
 An automation framework for engineering work that agents do and a workflow
 governs: agents pick up issues, write the code, review each other's work and
@@ -7,7 +7,7 @@ and what gets merged.
 
 It is built on [Dapr Workflows](https://docs.dapr.io/developing-applications/building-blocks/workflow/),
 [Dapr Agents](https://github.com/dapr/dapr-agents) and
-[Diagrid Catalyst](https://www.diagrid.io/catalyst), and it is a small, readable
+[Diagrid](https://www.diagrid.io/catalyst), and it is a small, readable
 version of how Diagrid runs coding agents on its own repositories.
 
 ## Who does what
@@ -27,7 +27,9 @@ in between.
 
 ## How work moves
 
-Label an issue `agent:implement` and the factory:
+Label an issue `agent:implement` and the factory works on it. With
+`AUTO_PICKUP=true` it starts as soon as an owner, member or collaborator opens
+the issue. The factory:
 
 1. claims the issue and clones the repository,
 2. runs an **implementer agent** that changes the code and adds a test,
@@ -44,19 +46,10 @@ happened and why. When a limit runs out (no change, no approved change after 2
 rounds, a `/reject`, or no answer in 24 hours), the issue is labelled
 `agent:needs-human` with the agent's last summary.
 
-```mermaid
-flowchart LR
-    GH[(GitHub issues / PRs)] -- poll --> W[issue_watch<br/>workflow]
-    W -- start, one per issue --> I[implement_issue<br/>workflow]
-    W -- start, one per PR head --> R[review_pull_request<br/>workflow]
-    W -- /approve, /reject --> I
-    I --> C[claim + clone] --> A1[[implementer agent]] --> V[verify: diff + tests] --> A2[[reviewer agent]]
-    A2 -- changes requested --> A1
-    A2 -- approved --> H{human approval} --> P[push + open PR]
-    R --> A3[[reviewer agent]] --> RV[post review]
-```
+![Architecture: which steps are plain code, which call an LLM, and which wait for a person](docs/architecture.png)
 
-`[[ ]]` are agent runs, each a child workflow. Everything else is a workflow activity.
+The two agent steps are the only ones that call an LLM. Each runs as a child
+workflow; every other step is a workflow activity in plain code.
 
 ## The rules, and where they live
 
@@ -66,7 +59,7 @@ flowchart LR
 | **The workflow checks the agent's work.** After the implementer finishes, the workflow lists the changed files and runs the tests itself. | `verify_workspace` in [`factory/activities.py`](factory/activities.py) |
 | **A fresh reviewer.** A second agent with no shared context reviews the diff and ends with `VERDICT: APPROVE` or `REQUEST_CHANGES`. | [`agents/reviewer.md`](agents/reviewer.md) |
 | **Least privilege.** Agents get five tools: list, read, search, write (inside one directory only) and run tests. They never see the GitHub token and cannot run git, push, label or merge. With the Claude backend, Claude's own shell and edit tools are switched off. | [`factory/tools.py`](factory/tools.py) |
-| **People hold the gates.** Only `/approve` and `/reject` from owners, members and collaborators count. The review bot comments; it never approves, so it does not count toward branch protection. | [`factory/github.py`](factory/github.py) |
+| **People hold the gates.** Only `/approve` and `/reject` from owners, members and collaborators count, and `AUTO_PICKUP` only picks up issues they opened. The review bot comments; it never approves, so it does not count toward branch protection. | [`factory/github.py`](factory/github.py) |
 | **Agents are configuration.** Each agent's role, goal, tools, iteration limit and instructions live in one file. Add a file to add an agent. | [`agents/`](agents) |
 | **One run per work item.** An issue or a PR head commit is one workflow instance with a stable id, so the same item is never worked on twice. | `_start_once` in [`factory/activities.py`](factory/activities.py) |
 
@@ -88,19 +81,19 @@ request, post a review note.
 
 ## Why workflows
 
-Each step runs on Catalyst as a durable workflow step, so the rules hold across
+Each step runs on Diagrid as a durable workflow step, so the rules hold across
 restarts. An agent run, a review round or a day-long wait for approval survives a
 restart of the worker and continues from its last completed step, without
 repeating work. Start more workers with the same app id
-and Catalyst spreads the runs across them. Every run, step and agent run shows
-in the Catalyst console.
+and Diagrid spreads the runs across them. Every run, step and agent run shows
+in the Diagrid console.
 
 ## Run it
 
-You need Python 3.11+, [uv](https://docs.astral.sh/uv/), the [Diagrid CLI](https://docs.diagrid.io/catalyst/references/cli-reference/intro/), a Catalyst organization, and a GitHub repository you can push to (a fork of this one works: the agents only change `sample-app/`).
+You need Python 3.11+, [uv](https://docs.astral.sh/uv/), the [Diagrid CLI](https://docs.diagrid.io/catalyst/references/cli-reference/intro/), a Diagrid organization, and a GitHub repository you can push to (a fork of this one works: the agents only change `sample-app/`).
 
 ```bash
-git clone https://github.com/diagrid-labs/catalyst-agent-factory && cd catalyst-agent-factory
+git clone https://github.com/diagrid-labs/diagrid-agent-factory && cd diagrid-agent-factory
 uv sync
 cp .env.example .env        # set TARGET_REPO to your fork
 diagrid login
@@ -109,17 +102,17 @@ diagrid project create agent-factory --enable-managed-workflow --deploy-managed-
 
 Pick how the agents think (`AGENT_BACKEND` in `.env`):
 
-- `claude` (default): the Claude Agent SDK, using this machine's Claude login, or `CLAUDE_CODE_OAUTH_TOKEN` / `ANTHROPIC_API_KEY`. Nothing to create in Catalyst.
+- `claude` (default): the Claude Agent SDK, using this machine's Claude login, or `CLAUDE_CODE_OAUTH_TOKEN` / `ANTHROPIC_API_KEY`. Nothing to create in Diagrid.
 - `conversation`: any LLM behind a Dapr Conversation component (OpenAI, Anthropic, Bedrock, Azure OpenAI, Ollama, ...). Create it with:
 
   ```bash
-  OPENAI_API_KEY=... scripts/setup_catalyst.sh agent-factory      # or ANTHROPIC_API_KEY=...
+  OPENAI_API_KEY=... scripts/setup_diagrid.sh agent-factory      # or ANTHROPIC_API_KEY=...
   ```
 
-Start the worker, connected to Catalyst:
+Start the worker, connected to Diagrid:
 
 ```bash
-diagrid dev run --project agent-factory --file dev-catalyst.yaml --approve
+diagrid dev run --project agent-factory --file dev-diagrid.yaml --approve
 ```
 
 The first run creates the `agent:*` labels on the repository. Then open the demo
@@ -130,7 +123,7 @@ uv run python scripts/seed_issues.py --label
 ```
 
 Follow along on the issues (each review round is posted as a comment), in the
-worker's log, and in the Catalyst console's workflow view. Reply `/approve` on an
+worker's log, and in the Diagrid console's workflow view. Reply `/approve` on an
 issue when asked, and a pull request opens. Then label it `agent:review` to have
 the reviewer agent review it.
 
@@ -166,6 +159,6 @@ factory/
   github.py          the GitHub calls; swap for GitLab merge requests
   prompts.py         task text and verdict parsing (pure functions)
 sample-app/          the code the agents work on, with tests
-scripts/             seed_issues.py, reset_demo.py, setup_catalyst.sh
-dev-catalyst.yaml    run file for `diagrid dev run`
+scripts/             seed_issues.py, reset_demo.py, setup_diagrid.sh
+dev-diagrid.yaml     run file for `diagrid dev run`
 ```

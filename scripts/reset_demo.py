@@ -6,7 +6,7 @@
     uv run python scripts/reset_demo.py --yes --no-seed # reset only
 
 What it does, in order:
-1. terminates the agents' running workflows on Catalyst (the watcher keeps running),
+1. terminates the agents' running workflows on Diagrid (the watcher keeps running),
 2. closes the agents' open pull requests and deletes their agent/* branches,
 3. closes the open demo issues: any with an agent:* label or a seeded title,
 4. restores the scope directory (sample-app/) on the default branch from the
@@ -14,7 +14,7 @@ What it does, in order:
 5. clears the local checkouts under WORK_ROOT,
 6. opens the demo issues again.
 
-Only TARGET_REPO is touched. Pass --project if your Catalyst project is not
+Only TARGET_REPO is touched. Pass --project if your Diagrid project is not
 called agent-factory.
 """
 
@@ -44,7 +44,7 @@ def step(msg: str) -> None:
 
 
 def running_workflows(project: str, repo: str) -> list[str]:
-    """The agents' runs on Catalyst that are still going. Not the watcher."""
+    """The agents' runs on Diagrid that are still going. Not the watcher."""
     if not shutil.which("diagrid"):
         print("   diagrid CLI not found: skipping")
         return []
@@ -88,7 +88,7 @@ def restore_scope(rt: config.Runtime, gh: GitHub, apply: bool) -> None:
         print("   " + "\n   ".join(changed.splitlines()))
         if apply:
             git(
-                "-c", "user.name=Catalyst Agent Factory",
+                "-c", "user.name=Diagrid Agent Factory",
                 "-c", "user.email=agent-factory@users.noreply.github.com",
                 "commit", "--quiet", "-am", f"Reset {scope}/ for the demo",
             )
@@ -101,7 +101,7 @@ def main() -> None:
     parser.add_argument("--yes", action="store_true", help="do it (default: only show what would happen)")
     parser.add_argument("--no-seed", action="store_true", help="do not open fresh issues")
     parser.add_argument("--label", action="store_true", help="label the fresh issues agent:implement")
-    parser.add_argument("--project", default="agent-factory", help="Catalyst project name")
+    parser.add_argument("--project", default="agent-factory", help="Diagrid project name")
     args = parser.parse_args()
 
     rt = config.load()
@@ -109,7 +109,7 @@ def main() -> None:
     apply = args.yes
     print(f"Resetting the demo on {rt.settings.repo}" + ("" if apply else "  (dry run: add --yes to do it)"))
 
-    step("Running agent workflows on Catalyst")
+    step("Running agent workflows on Diagrid")
     for wid in running_workflows(args.project, rt.settings.repo):
         print(f"   terminate {wid}")
         if apply:

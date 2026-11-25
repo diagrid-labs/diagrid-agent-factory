@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Create the Catalyst project and the LLM component the agents use.
-#   OPENAI_API_KEY=... scripts/setup_catalyst.sh [project]
+# Create the Diagrid project and the LLM component the agents use.
+#   OPENAI_API_KEY=... scripts/setup_diagrid.sh [project]
 # or ANTHROPIC_API_KEY=... to use Claude instead.
 set -euo pipefail
 PROJECT="${1:-agent-factory}"
@@ -21,4 +21,4 @@ else
   echo "Set ANTHROPIC_API_KEY or OPENAI_API_KEY" >&2
   exit 1
 fi
-echo "Project $PROJECT is ready. Next: diagrid dev run --project $PROJECT --file dev-catalyst.yaml"
+echo "Project $PROJECT is ready. Next: diagrid dev run --project $PROJECT --file dev-diagrid.yaml"
