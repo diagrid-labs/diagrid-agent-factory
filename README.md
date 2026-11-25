@@ -47,15 +47,7 @@ clear fix, though the code differs a little between runs, since the agents are L
 
 ## Who does what
 
-| | People | Workflow | Agents |
-|---|---|---|---|
-| Start work on an issue or a PR (a label) | yes | | |
-| Change code and add tests | | | implementer, inside one directory |
-| Decide the change is done | | yes, from git and the test run | |
-| Review a diff | yes | | reviewer |
-| Approve opening a pull request (`/approve`) | yes | | |
-| Hold the token, push, open the PR, set labels | | yes | |
-| Merge | yes | | |
+![One issue from label to merge: people label, approve and merge; the workflow claims, checks, asks and opens the PR; the agents change and review the code](docs/who-does-what.png)
 
 ## How work moves
 
