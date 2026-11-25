@@ -4,6 +4,9 @@
     uv run python scripts/reset_demo.py --yes           # do it, then open fresh issues
     uv run python scripts/reset_demo.py --yes --label   # ...and hand them to the implementer
     uv run python scripts/reset_demo.py --yes --no-seed # reset only
+    uv run python scripts/reset_demo.py --yes --label --only 1  # one issue, so one known PR
+
+The Reset demo workflow in GitHub Actions runs this with a form instead.
 
 What it does, in order:
 1. terminates the agents' running workflows on Diagrid (the watcher keeps running),
@@ -101,6 +104,8 @@ def main() -> None:
     parser.add_argument("--yes", action="store_true", help="do it (default: only show what would happen)")
     parser.add_argument("--no-seed", action="store_true", help="do not open fresh issues")
     parser.add_argument("--label", action="store_true", help="label the fresh issues agent:implement")
+    parser.add_argument("--only", type=int, action="append", choices=range(1, len(ISSUES) + 1),
+                        help="open only this issue (1-based, repeatable)")
     parser.add_argument("--project", default="agent-factory", help="Diagrid project name")
     args = parser.parse_args()
 
@@ -156,9 +161,11 @@ def main() -> None:
         return
     step("Fresh issues")
     if apply:
-        seed(gh, args.label)
+        seed(gh, args.label, args.only)
     else:
-        for title, _ in ISSUES:
+        for i, (title, _) in enumerate(ISSUES, start=1):
+            if args.only and i not in args.only:
+                continue
             print(f"   open: {title}" + ("  [agent:implement]" if args.label else ""))
 
 
