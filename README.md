@@ -36,16 +36,6 @@ a `/reject`, or no answer in 24 hours), the issue is labelled `agent:needs-human
 
 Three workflows run the process. The two agents run as their child workflows.
 
-```
-issue_watch  (polls every 30 s, then continue-as-new)
- ├─ starts ─► implement_issue  issue-<repo>-<N>
- │              ├─ child ─► implementer agent  …-implement-<round>
- │              ├─ child ─► reviewer agent     …-review-<round>
- │              └─ waits for "approval"  ◄─ /approve or /reject
- └─ starts ─► review_pull_request  review-<repo>-<PR>-<sha>
-                └─ child ─► reviewer agent     …-review
-```
-
 | Workflow | Runs | Activities | Child workflows | Waits |
 |---|---|---|---|---|
 | `issue_watch` | one, always on | `poll` | none | a 30 s timer, then continue-as-new |
