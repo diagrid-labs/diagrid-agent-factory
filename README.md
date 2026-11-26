@@ -36,8 +36,9 @@ a `/reject`, or no answer in 24 hours), the issue is labelled `agent:needs-human
 
 Three workflows run the process. The two agents run as their child workflows,
 with run ids ending in `-implementer-agent-<round>` and `-reviewer-agent-<round>`.
-Each agent registers itself in the project's agent registry, so it is listed on
-the Agents page of the Diagrid console next to the workflows that call it.
+The worker runs as a Diagrid Agent identity, which gives it the project's
+managed agent registry, so each agent is listed on the Agents page of the
+Diagrid console next to the workflows that call it.
 
 | Workflow | Runs | Activities | Child workflows | Waits |
 |---|---|---|---|---|
@@ -162,8 +163,7 @@ an OpenAI key.
 ```bash
 diagrid login
 diagrid project create agent-factory --enable-managed-workflow --deploy-managed-kv --wait
-diagrid project update agent-factory --enable-agent-infrastructure
-diagrid appid create agent-factory --project agent-factory --wait
+diagrid agent create agent-factory --project agent-factory --wait
 diagrid component create llm-provider --type conversation.openai --project agent-factory \
   --metadata key="$OPENAI_API_KEY" --metadata model=gpt-4.1 --wait
 ```
