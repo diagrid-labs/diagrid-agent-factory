@@ -1,10 +1,7 @@
-# The agent factory worker on demo-production-catalyst.
+# The agent factory worker. Diagrid hosts the workflow engine, the state store and the
+# console; the worker watches TARGET_REPO and opens pull requests there.
 #
-# The worker runs here; Diagrid (Demo Production Catalyst org, project agent-factory)
-# hosts the workflow engine, the state store and the console. The worker watches
-# TARGET_REPO on GitHub and opens pull requests there as the bot account.
-#
-# Secrets are NOT in this file. Create them first. See deploy/README.md.
+# Secrets are not in this file. Create them first: see deploy/README.md.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,11 +42,14 @@ spec:
               value: "true"
             # Links the "Picked up" comment on an issue to its run in the Diagrid console.
             - name: CONSOLE_URL
-              value: "https://catalyst.diagrid.io/workflows/agent-factory/{instance_id}?org=79a0006b-2ca1-4d95-a0f9-809467822799&project=agent-factory"
+              valueFrom:
+                secretKeyRef:
+                  name: catalyst-agent-factory
+                  key: consoleUrl
+                  optional: true
             - name: REQUIRE_APPROVAL
               value: "true"
-            # Each LLM call goes through the project's Dapr Conversation component
-            # llm-provider (OpenAI), the same OpenAI key the other demos use.
+            # Each LLM call goes through the project's Dapr Conversation component llm-provider.
             - name: AGENT_BACKEND
               value: conversation
             - name: LLM_COMPONENT

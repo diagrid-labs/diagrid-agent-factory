@@ -1,6 +1,6 @@
 # Applied once by hand; Argo CD keeps the agent-factory namespace in sync with
 # deploy/ on main from then on.
-#   kubectl --context demo-production-catalyst apply -f deploy/argocd/application.yaml
+#   kubectl apply -f deploy/argocd/application.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

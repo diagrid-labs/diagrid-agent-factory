@@ -1,116 +1,69 @@
-# Deploy
+# Deploy on Kubernetes
 
-A persistent copy of this demo runs on `demo-production-catalyst`, namespace `agent-factory`,
-against the Diagrid project `agent-factory` in the Demo Production Catalyst org. It watches
-`diagrid-labs/diagrid-agent-factory` and works on issues opened there by org members.
+The worker runs as one pod. Diagrid hosts the workflow engine and its state, so
+the pod only needs outbound access to Diagrid, GitHub and nothing else.
 
-Merging to `main` deploys it. The **Publish** workflow runs the tests, builds the worker image,
-pushes it to `public.ecr.aws/d3f9w4q8/agent-factory/worker:<commit>` (GitHub OIDC, role
-`github-actions-ecr-push-agent-factory` in account `214575257891`), and commits the new
-tag to `deploy/kustomization.yaml`. Argo CD (Application `agent-factory`,
-`deploy/argocd/application.yaml`) syncs `deploy/` and rolls it out. It also reverts manual
-changes to anything in `deploy/`, so change the files instead. Secrets stay out of git and Argo
-CD: create them by hand as below.
-
-| Piece | Where |
+| File | What it is |
 |---|---|
-| Worker (`deployment.yaml`) | Deployment `agent-factory`: the three workflows and both agents in one pod |
-| Diagrid | project `agent-factory`, App ID `agent-factory`, managed workflow store and `kvstore` |
-| GitHub | repo `diagrid-labs/diagrid-agent-factory`, comments and PRs as the bot account |
-| LLM | Dapr Conversation component `llm-provider` (OpenAI `gpt-4.1`), with the OpenAI key the other demos use |
+| `deployment.yaml` | The worker Deployment and a 5 GiB volume for the agents' checkouts |
+| `kustomization.yaml` | The image to run; CI sets its tag |
+| `argocd/application.yaml` | Optional: an Argo CD Application that keeps the cluster in sync with `deploy/` on `main` |
 
-Only one worker may watch a repository, or two would pick up the same issues.
-
-## Deploy
-
-First-time setup only. Run everything from the repository root.
-
-### 1. Registry
-
-ECR Public repository `agent-factory/worker` in account `214575257891`. CI pushes with the IAM
-role `github-actions-ecr-push-agent-factory`: it trusts only GitHub OIDC tokens for this repo's
-`main` and may push only to `agent-factory/*`.
-
-### 2. Diagrid project
+## 1. Diagrid project
 
 ```bash
-diagrid login                 # production, then pick the Demo Production Catalyst org
+diagrid login
 diagrid project create agent-factory --enable-managed-workflow --deploy-managed-kv --wait
 diagrid appid create agent-factory --project agent-factory --wait
-
-# The LLM: the same OpenAI key as verifiable-execution-demo, read from its secret, never printed.
 diagrid component create llm-provider --type conversation.openai --project agent-factory \
-  --metadata key="$(kubectl --context demo-production-catalyst -n verifiable-execution-demo \
-    get secret openai -o jsonpath='{.data.apiKey}' | base64 -d)" \
-  --metadata model=gpt-4.1 --wait
+  --metadata key="$OPENAI_API_KEY" --metadata model=gpt-4.1 --wait
 ```
 
-### 3. Secrets
+## 2. Secrets
 
 ```bash
-# kubectl scoped to this demo. A function, because zsh would not split a variable into arguments.
-kaf() { kubectl --context demo-production-catalyst -n agent-factory "$@"; }
-kubectl --context demo-production-catalyst create namespace agent-factory
+kubectl create namespace agent-factory
 
-kaf create secret generic catalyst-agent-factory \
+kubectl -n agent-factory create secret generic catalyst-agent-factory \
   --from-literal=apiToken="$(diagrid appid get agent-factory -p agent-factory -o json | jq -r .status.apiToken)" \
   --from-literal=grpcEndpoint="$(diagrid project get agent-factory -o json | jq -r .status.endpoints.grpc.url)" \
-  --from-literal=httpEndpoint="$(diagrid project get agent-factory -o json | jq -r .status.endpoints.http.url)"
+  --from-literal=httpEndpoint="$(diagrid project get agent-factory -o json | jq -r .status.endpoints.http.url)" \
+  --from-literal=consoleUrl="https://catalyst.diagrid.io/workflows/agent-factory/{instance_id}?org=<org id>&project=agent-factory"
 
-# The bot account's fine-grained token on diagrid-labs/diagrid-agent-factory:
+# A bot account's fine-grained token on TARGET_REPO:
 # contents, issues and pull requests read/write, metadata read.
-kaf create secret generic github-bot --from-literal=token="$GITHUB_BOT_TOKEN"
+kubectl -n agent-factory create secret generic github-bot --from-literal=token="$GITHUB_BOT_TOKEN"
 ```
 
-Keep the token in 1Password, never in this repo.
+`consoleUrl` is optional. With it, the worker's first comment on an issue links to
+the run in the Diagrid console.
 
-### 4. Hand it to Argo CD
+## 3. Run it
 
-Argo CD reads this private repo with a read-only deploy key: public half in the repo's
-Settings › Deploy keys, private half in the `repo-diagrid-agent-factory` Secret in the `argocd`
-namespace (label `argocd.argoproj.io/secret-type=repository`). Then:
+Set `TARGET_REPO` in `deployment.yaml` to your repository, then:
 
 ```bash
-kubectl --context demo-production-catalyst apply -f deploy/argocd/application.yaml
-kaf logs deploy/agent-factory | grep -E "agents:|ready:"
+kubectl apply -k deploy/
+kubectl -n agent-factory logs deploy/agent-factory | grep ready:
 ```
 
-The log ends with `ready: label an issue 'agent:implement' ...` once the worker is connected.
+Or let Argo CD do it: point `argocd/application.yaml` at your repository and apply it.
 
-## Run the demo
+CI (`.github/workflows/publish.yaml`) builds the image on every pull request. On
+`main`, with a repository variable `AWS_ROLE_ARN` for an OIDC role that can push to
+ECR Public, it also pushes the image and commits the new tag to `kustomization.yaml`.
 
-1. **Reset.** Open **Actions → [Reset demo](https://github.com/diagrid-labs/diagrid-agent-factory/actions/workflows/reset-demo.yaml) → Run workflow**.
-   It stops the agents' running workflows, closes their issues and pull requests,
-   deletes their `agent/*` branches and puts the bugs back in `sample-app/`.
-2. **Open a demo issue** as an org member: **New issue**, then a Demo template.
-   No label needed.
-3. **Watch the issue.** Within 30 seconds the worker claims it and comments with
-   a link to its run in the Diagrid console.
-4. **Approve.** When the issue asks, reply `/approve`, and the workflow opens the
-   pull request. `/reject` stops it.
-5. **Review bot.** Label the pull request `agent:review` and the reviewer agent
-   posts a review on it.
+## Notes
 
-| Open it | The issue | The pull request you get |
-|---|---|---|
-| [Demo 1](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-1-short-pnl.md) | Short positions show the wrong sign in P&L | `position_pnl` returns a loss for a losing short, plus a test |
-| [Demo 2](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-2-jpy-pips.md) | Spread and pip value are 100x off for JPY pairs | a 0.01 pip for JPY pairs in `spread_in_pips` and `pip_value`, plus tests |
-| [Demo 3](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-3-margin.md) | Add `margin_required(units, price, leverage)` | the new function with its checks, plus tests |
-
-Demo 1 is the quickest: about 3 minutes to the approval request.
+- Run one replica. Two workers watching the same repository pick up the same issues.
+- The rollout is `Recreate`, because the checkout volume attaches to one pod at a time.
+- The image is public: `.dockerignore` lets in only the files the build needs.
 
 ## Tear down
 
 ```bash
-kubectl --context demo-production-catalyst -n argocd delete application agent-factory
-kubectl --context demo-production-catalyst delete namespace agent-factory
+kubectl delete namespace agent-factory
 diagrid project delete agent-factory
 ```
 
-Delete the Application first, or Argo CD recreates everything.
-
-## Don't
-
-- Run two replicas with different settings: the watcher keeps the settings it started with
-  until a worker restarts it.
-- Widen `.dockerignore`. The image is public, so it allowlists only the files the build needs.
+With Argo CD, delete its Application first, or it recreates everything.
