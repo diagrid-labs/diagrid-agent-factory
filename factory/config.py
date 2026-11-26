@@ -97,5 +97,5 @@ def load() -> Runtime:
         claude_model=os.environ.get("CLAUDE_MODEL", "claude-sonnet-5-5"),
         llm_component=os.environ.get("LLM_COMPONENT", "llm-provider"),
         state_store=os.environ.get("STATE_STORE", "kvstore"),
-        registry_store=os.environ.get("REGISTRY_STORE", os.environ.get("STATE_STORE", "kvstore")),
+        registry_store=os.environ.get("REGISTRY_STORE", "agent-registry"),
     )

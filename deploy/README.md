@@ -14,7 +14,7 @@ the pod only needs outbound access to Diagrid, GitHub and nothing else.
 ```bash
 diagrid login
 diagrid project create agent-factory --enable-managed-workflow --deploy-managed-kv --wait
-diagrid appid create agent-factory --project agent-factory --wait
+diagrid agent create agent-factory --project agent-factory --wait
 diagrid component create llm-provider --type conversation.openai --project agent-factory \
   --metadata key="$OPENAI_API_KEY" --metadata model=gpt-4.1 --wait
 ```

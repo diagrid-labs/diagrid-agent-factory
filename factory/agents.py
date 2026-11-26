@@ -108,7 +108,8 @@ def build(
             tools=[agent_tools.ALL[t] for t in spec.tools],
             **_brain(spec, backend, llm_component, claude_model, store),
             state=AgentStateConfig(store=store),
-            # Listed in the Diagrid agent registry, each in a team of its own: agents in
+            # Listed in the project's agent-registry, so the console shows it on the
+            # Agents page. Each is in a team of its own: agents in
             # one team become each other's tools, and here the workflow, not the
             # implementer, decides when the reviewer runs.
             registry=AgentRegistryConfig(

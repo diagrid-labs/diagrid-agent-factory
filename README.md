@@ -34,7 +34,11 @@ a `/reject`, or no answer in 24 hours), the issue is labelled `agent:needs-human
 
 ## The workflows
 
-Three workflows run the process. The two agents run as their child workflows.
+Three workflows run the process. The two agents run as their child workflows,
+with run ids ending in `-implementer-agent-<round>` and `-reviewer-agent-<round>`.
+The worker runs as a Diagrid Agent identity, which gives it the project's
+managed agent registry, so each agent is listed on the Agents page of the
+Diagrid console next to the workflows that call it.
 
 | Workflow | Runs | Activities | Child workflows | Waits |
 |---|---|---|---|---|
@@ -63,9 +67,9 @@ def implement_issue(ctx, inp):
     issue = yield ctx.call_activity(act.claim_issue, input=..., retry_policy=RETRY)
     ws = yield ctx.call_activity(act.prepare_workspace, input=..., retry_policy=RETRY)
     for round_no in range(1, max_rounds + 1):
-        result = yield ctx.call_child_workflow(implementer, input=task, instance_id=f"{iid}-implement-{round_no}")
+        result = yield ctx.call_child_workflow(implementer, input=task, instance_id=f"{iid}-implementer-agent-{round_no}")
         check = yield ctx.call_activity(act.verify_workspace, input=..., retry_policy=RETRY)
-        review = yield ctx.call_child_workflow(reviewer, input=..., instance_id=f"{iid}-review-{round_no}")
+        review = yield ctx.call_child_workflow(reviewer, input=..., instance_id=f"{iid}-reviewer-agent-{round_no}")
         ...
     answer = ctx.wait_for_external_event("approval")
     timeout = ctx.create_timer(timedelta(hours=24))
@@ -159,7 +163,7 @@ an OpenAI key.
 ```bash
 diagrid login
 diagrid project create agent-factory --enable-managed-workflow --deploy-managed-kv --wait
-diagrid appid create agent-factory --project agent-factory --wait
+diagrid agent create agent-factory --project agent-factory --wait
 diagrid component create llm-provider --type conversation.openai --project agent-factory \
   --metadata key="$OPENAI_API_KEY" --metadata model=gpt-4.1 --wait
 ```

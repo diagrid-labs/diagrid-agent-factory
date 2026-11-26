@@ -66,7 +66,7 @@ def build(agent_workflows: dict[str, str]):
             result = yield ctx.call_child_workflow(
                 implementer,
                 input={"task": prompts.implement_task(issue, ws["path"], s["scope"], feedback)},
-                instance_id=f"{iid}-implement-{round_no}",
+                instance_id=f"{iid}-implementer-agent-{round_no}",
             )
             summary = prompts.agent_text(result) or summary
 
@@ -87,7 +87,7 @@ def build(agent_workflows: dict[str, str]):
                         f"issue #{number}: {issue['title']}", issue["body"], check["diff"], ws["path"]
                     )
                 },
-                instance_id=f"{iid}-review-{round_no}",
+                instance_id=f"{iid}-reviewer-agent-{round_no}",
             )
             review = prompts.agent_text(review_result)
             verdict = prompts.verdict(review)
@@ -187,7 +187,7 @@ def build(agent_workflows: dict[str, str]):
         result = yield ctx.call_child_workflow(
             reviewer,
             input={"task": prompts.review_task(f"PR #{pr['number']}: {pr['title']}", pr["body"], pr["diff"], ws["path"])},
-            instance_id=f"{ctx.instance_id}-review",
+            instance_id=f"{ctx.instance_id}-reviewer-agent",
         )
         review = prompts.agent_text(result)
         yield ctx.call_activity(
