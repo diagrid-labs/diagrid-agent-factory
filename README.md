@@ -56,6 +56,13 @@ issue_watch  (polls every 30 s, then continue-as-new)
 children, so a restart of the watcher leaves them running. Inside each agent run,
 every LLM call and every tool call is its own checkpointed step.
 
+### What happens on a crash
+
+Diagrid stores each completed step. If the worker dies mid-run, a new worker
+picks every run up from its last completed step, including inside an agent's
+run, so no LLM call or tool call is repeated. A run waiting a day for `/approve`
+holds no process and survives any number of restarts.
+
 ## How the code is written
 
 **Workflows decide the order** ([`factory/workflows.py`](factory/workflows.py)).
@@ -78,7 +85,9 @@ def implement_issue(ctx, inp):
 
 **Activities do the work** ([`factory/activities.py`](factory/activities.py)).
 Each is a plain function, `(ctx, inp) -> dict`, that calls GitHub, runs git or
-runs the tests. Nothing else in the code has side effects.
+runs the tests. Nothing else in the code has side effects. Any workflow can call
+any activity: `prepare_workspace` serves both `implement_issue` and
+`review_pull_request`, so a new workflow mostly reuses steps that already exist.
 
 **Agents are configuration** ([`agents/`](agents)). Each Markdown file holds an
 agent's role, goal, tools, step limit and instructions.
@@ -99,6 +108,8 @@ You are given one issue and a git checkout of the repository...
 The five tools are in [`factory/tools.py`](factory/tools.py). The LLM behind
 both agents is a setting: any model behind a Dapr Conversation component
 (`AGENT_BACKEND=conversation`), or the Claude Agent SDK (`AGENT_BACKEND=claude`).
+With the second, Claude Code's agent loop runs inside a durable workflow step on
+your cluster instead of on a developer's machine.
 
 ## Practices it follows
 
@@ -115,7 +126,9 @@ both agents is a setting: any model behind a Dapr Conversation component
 | Only owners, members and collaborators can start work or approve. The review bot comments; it never approves. | [`github.py`](factory/github.py) | |
 | Work that has to outlive a restart is on durable storage: the agents' checkout stays on a persistent volume until `/approve` pushes it. | [`deploy/deployment.yaml`](deploy/deployment.yaml) | [diagrid-deploy](https://github.com/diagridio/diagrid-ai/tree/main/skills/diagrid-deploy) |
 
-The skills come from Diagrid's Claude Code plugin, [diagridio/diagrid-ai](https://github.com/diagridio/diagrid-ai):
+We have written all of these practices up as agent skills, so a coding agent
+applies them when it writes or reviews workflow code. They are in
+[diagridio/diagrid-ai](https://github.com/diagridio/diagrid-ai); install them in Claude Code with:
 
 ```bash
 claude plugin marketplace add diagridio/diagrid-ai
