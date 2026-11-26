@@ -7,4 +7,4 @@ resources:
 images:
 - name: public.ecr.aws/d3f9w4q8/agent-factory/worker
   newName: public.ecr.aws/d3f9w4q8/agent-factory/worker
-  newTag: 95f9346c1c600a53f841ba77e71e4ffe93a2f1ad
+  newTag: fefb3b3225715989c59adeaa6fa4d317afc8d9f8
