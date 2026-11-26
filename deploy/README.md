@@ -2,8 +2,7 @@
 
 A persistent copy of this demo runs on `demo-production-catalyst`, namespace `agent-factory`,
 against the Diagrid project `agent-factory` in the Demo Production Catalyst org. It watches
-`diagrid-labs/diagrid-agent-factory` and works on issues opened there by org members. How to run the demo is in the
-[README](../README.md#run-the-demo).
+`diagrid-labs/diagrid-agent-factory` and works on issues opened there by org members.
 
 Merging to `main` deploys it. The **Publish** workflow runs the tests, builds the worker image,
 pushes it to `public.ecr.aws/d3f9w4q8/agent-factory/worker:<commit>` (GitHub OIDC, role
@@ -77,6 +76,28 @@ kaf logs deploy/agent-factory | grep -E "agents:|ready:"
 ```
 
 The log ends with `ready: label an issue 'agent:implement' ...` once the worker is connected.
+
+## Run the demo
+
+1. **Reset.** Open **Actions → [Reset demo](https://github.com/diagrid-labs/diagrid-agent-factory/actions/workflows/reset-demo.yaml) → Run workflow**.
+   It stops the agents' running workflows, closes their issues and pull requests,
+   deletes their `agent/*` branches and puts the bugs back in `sample-app/`.
+2. **Open a demo issue** as an org member: **New issue**, then a Demo template.
+   No label needed.
+3. **Watch the issue.** Within 30 seconds the worker claims it and comments with
+   a link to its run in the Diagrid console.
+4. **Approve.** When the issue asks, reply `/approve`, and the workflow opens the
+   pull request. `/reject` stops it.
+5. **Review bot.** Label the pull request `agent:review` and the reviewer agent
+   posts a review on it.
+
+| Open it | The issue | The pull request you get |
+|---|---|---|
+| [Demo 1](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-1-short-pnl.md) | Short positions show the wrong sign in P&L | `position_pnl` returns a loss for a losing short, plus a test |
+| [Demo 2](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-2-jpy-pips.md) | Spread and pip value are 100x off for JPY pairs | a 0.01 pip for JPY pairs in `spread_in_pips` and `pip_value`, plus tests |
+| [Demo 3](https://github.com/diagrid-labs/diagrid-agent-factory/issues/new?template=demo-3-margin.md) | Add `margin_required(units, price, leverage)` | the new function with its checks, plus tests |
+
+Demo 1 is the quickest: about 3 minutes to the approval request.
 
 ## Tear down
 
